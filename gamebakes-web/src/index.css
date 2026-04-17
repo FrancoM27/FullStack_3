@@ -1,0 +1,20 @@
+body {
+  margin: 0;
+  /* Degradado: Negro profundo a un morado muy oscuro y toques de azul */
+  background: radial-gradient(circle at top, #1a0b2e 0%, #050505 100%);
+  background-attachment: fixed;
+  color: white;
+  font-family: 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Un efecto sutil para que los botones brillen */
+button {
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+button:hover {
+  box-shadow: 0 0 15px #00d4ff;
+  transform: translateY(-2px);
+}
