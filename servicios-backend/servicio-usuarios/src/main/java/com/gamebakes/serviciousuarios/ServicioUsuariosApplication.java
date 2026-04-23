@@ -1,4 +1,4 @@
-package com.example.serviciousuarios;
+package com.gamebakes.serviciousuarios;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
