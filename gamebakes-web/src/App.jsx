@@ -1,12 +1,32 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import SeguimientoPedidos from './componentes/seguimiento_pedidos/SeguimientoPedidos'
 import ResenasProducto from './componentes/resenas/ResenasProducto'
 import logo from './assets/logo_gamebakes.png'
+import Login from './componentes/autenticacion/Login'
+import Registro from './componentes/autenticacion/Registro'
 
 function App() {
-  // Cuando tengamos el backend, esto vendrá del Login
-  const [usuario, setUsuario] = useState({ loggedIn: true, rol: 'cliente' }); 
+  const [usuario, setUsuario] = useState({ loggedIn: false, rol: 'cliente' });
+  const [mostrarRegistro, setMostrarRegistro] = useState(false);
   const [seccionActiva, setSeccionActiva] = useState('inicio');
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            // Por ahora confiamos en que el token existe,
+            // más adelante podrías validar si expiró.
+            setUsuario({ loggedIn: true, rol: 'cliente' });
+        }
+    }, []);
+
+    if (!usuario.loggedIn) {
+        return mostrarRegistro
+            ? <Registro alVolverAlLogin={() => setMostrarRegistro(false)} />
+            : <Login
+                onLoginSuccess={() => setUsuario({ loggedIn: true, rol: 'cliente' })}
+                alCambiarARegistro={() => setMostrarRegistro(true)}
+            />
+    }
 
   const colorCian = '#00d4ff';
   const colorMorado = '#9b59b6';
