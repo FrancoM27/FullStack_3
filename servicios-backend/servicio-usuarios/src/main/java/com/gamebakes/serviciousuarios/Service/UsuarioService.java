@@ -6,6 +6,7 @@ import com.gamebakes.serviciousuarios.DTO.UsuarioDTO;
 import com.gamebakes.serviciousuarios.Model.Rol;
 import com.gamebakes.serviciousuarios.Model.Usuario;
 import com.gamebakes.serviciousuarios.Repository.UsuarioRepository;
+import com.gamebakes.serviciousuarios.Security.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,9 @@ public class UsuarioService {
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtUtils jwtUtils;
 
     public Usuario actualizarPerfil(Long id, UsuarioDTO dto){
         Usuario usuario = usuarioRepository.findById(id)
@@ -63,7 +67,7 @@ public class UsuarioService {
         return usuarioRepository.save(nuevoUsuario);
     }
 
-    public Usuario loginUsuario(LoginDTO dto){
+    public String loginUsuario(LoginDTO dto){
         Usuario usuario = usuarioRepository.findByUsernameOrEmail(dto.getIdentifier(), dto.getIdentifier())
                 .orElseThrow(() -> new RuntimeException("Usuario o email no encontrado"));
 
@@ -71,6 +75,6 @@ public class UsuarioService {
             throw new RuntimeException("Usuario o contraseña incorrectos");
         }
 
-        return usuario;
+        return jwtUtils.generarToken(usuario);
     }
 }
