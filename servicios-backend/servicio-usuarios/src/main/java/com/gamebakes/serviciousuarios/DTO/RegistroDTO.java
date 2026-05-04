@@ -25,4 +25,6 @@ public class RegistroDTO {
     @NotBlank(message = "Este campo es obligatorio")
     private String nombreCompleto;
 
+    private String rol;
+
 }

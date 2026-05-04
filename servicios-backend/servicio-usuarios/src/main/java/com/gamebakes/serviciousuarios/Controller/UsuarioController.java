@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/usuarios")
+@CrossOrigin(origins = "*")
 public class UsuarioController {
 
     @Autowired
@@ -20,20 +21,20 @@ public class UsuarioController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Usuario> actualizarPerfil(@PathVariable Long id,
-                                                    @Valid @RequestBody UsuarioDTO dto){
+                                                   @Valid @RequestBody UsuarioDTO dto) {
+        
         Usuario usuarioActualizado = usuarioService.actualizarPerfil(id, dto);
-
         return ResponseEntity.ok(usuarioActualizado);
     }
 
     @PostMapping("/registrar")
-    public ResponseEntity<Usuario> registrarUusario(@Valid @RequestBody RegistroDTO dto){
+    public ResponseEntity<Usuario> registrarUusario(@Valid @RequestBody RegistroDTO dto) {
         Usuario nuevoUsuario = usuarioService.registrarUsuario(dto);
         return ResponseEntity.ok(nuevoUsuario);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@Valid @RequestBody LoginDTO dto){
+    public ResponseEntity<String> login(@Valid @RequestBody LoginDTO dto) {
         String token = usuarioService.loginUsuario(dto);
         return ResponseEntity.ok(token);
     }

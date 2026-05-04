@@ -1,10 +1,8 @@
 package com.gamebakes.servicio_catalogo.Service;
 
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.gamebakes.servicio_catalogo.Model.Catalogo;
 import com.gamebakes.servicio_catalogo.Repository.CatalogoRepository;
 
@@ -19,9 +17,6 @@ public class CatalogoService {
     }
 
     public List<Catalogo> verCatalogoPorCategoria(String categoria) {
-        return catalogoRepository.findByCategoria(categoria);
+        return catalogoRepository.findByCategoriaProducto(categoria);
     }
-
-
-
 }

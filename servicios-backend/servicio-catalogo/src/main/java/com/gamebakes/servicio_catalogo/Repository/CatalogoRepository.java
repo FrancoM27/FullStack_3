@@ -9,5 +9,5 @@ import com.gamebakes.servicio_catalogo.Model.Catalogo;
 
 @Repository
 public interface CatalogoRepository extends JpaRepository<Catalogo, Long> {
-    List<Catalogo> findByCategoria(String categoria);
+    List<Catalogo> findByCategoriaProducto(String categoriaProducto);
 }
