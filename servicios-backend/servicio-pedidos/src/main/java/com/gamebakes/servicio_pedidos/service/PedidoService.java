@@ -18,27 +18,36 @@ public class PedidoService {
 
     private final String TOPIC = "seguimiento-pedidos";
 
-    public List<Pedido> obtenerTodos() {
-        return pedidoRepository.findAll();
+    //VISTA CLIENTE: Obtener sus pedidos personales
+    public List<Pedido> obtenerPedidosPorCliente(Long clienteId) {
+        return pedidoRepository.findByClienteId(clienteId);
+    }
+
+    //VISTA VENDEDOR: Obtener pedidos dirigidos a sus productos
+    public List<Pedido> obtenerPedidosPorVendedor(Long vendedorId) {
+        return pedidoRepository.findByVendedorId(vendedorId);
     }
 
     public Pedido crearPedido(Pedido pedido) {
         pedido.setEstado("PENDIENTE");
         Pedido nuevoPedido = pedidoRepository.save(pedido);
         
-        // Notificamos a Kafka que hay un nuevo pedido
-        //kafkaTemplate.send(TOPIC, "Pedido #" + nuevoPedido.getId() + " creado para " + nuevoPedido.getClienteNombre()); (DESCOMENTAR LUEGO)
+        //Kafka: Notificar creación
+        kafkaTemplate.send(TOPIC, "NUEVO_PEDIDO: El cliente " + pedido.getClienteNombre() + " compró " + pedido.getProductoNombre());
         
         return nuevoPedido;
     }
 
     public Pedido actualizarEstado(Long id, String nuevoEstado) {
-        Pedido pedido = pedidoRepository.findById(id).orElseThrow();
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
+        
         pedido.setEstado(nuevoEstado);
+        Pedido actualizado = pedidoRepository.save(pedido);
         
-        // Notificamos a Kafka el cambio de estado
-        //kafkaTemplate.send(TOPIC, "El pedido #" + id + " cambió a: " + nuevoEstado); (DESCOMENTAR LUEGO)
+        //Kafka: Notificar cambio de estado para seguimiento en tiempo real
+        kafkaTemplate.send(TOPIC, "ESTADO_ACTUALIZADO: Pedido #" + id + " ahora está en " + nuevoEstado);
         
-        return pedidoRepository.save(pedido);
+        return actualizado;
     }
 }

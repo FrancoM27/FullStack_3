@@ -7,22 +7,34 @@ export default function Login({ onLoginSuccess, alCambiarARegistro }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        console.log("Intentando iniciar sesión con:", datos.identifier);
+
         try {
-            const response = await fetch('http://localhost:8081/api/usuarios/login', {
+            const response = await fetch('http://localhost:8080/api/usuarios/login', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                //Aquí enviamos el objeto con 'identifier' y 'password'
                 body: JSON.stringify(datos)
             });
 
             if (response.ok) {
                 const token = await response.text();
-                localStorage.setItem('token', token); // Guardamos el pasaporte
-                onLoginSuccess(); // Avisamos a App.jsx que entramos
+                console.log("¡Login exitoso! Token guardado.");
+                
+                sessionStorage.setItem('token', token);
+                
+                alert("¡Bienvenido al sistema!");
+                onLoginSuccess(); 
             } else {
                 alert("Usuario o contraseña incorrectos");
             }
         } catch (error) {
             console.error("Error en login:", error);
+            alert("No se pudo conectar con el servidor.");
         }
     };
 
@@ -35,12 +47,14 @@ export default function Login({ onLoginSuccess, alCambiarARegistro }) {
                         type="text"
                         placeholder="Usuario o Email"
                         style={inputStyle}
+                        required
                         onChange={(e) => setDatos({...datos, identifier: e.target.value})}
                     />
                     <input
                         type="password"
                         placeholder="Contraseña"
                         style={inputStyle}
+                        required
                         onChange={(e) => setDatos({...datos, password: e.target.value})}
                     />
                     <button type="submit" style={btnStyle}>Iniciar Sesión</button>
