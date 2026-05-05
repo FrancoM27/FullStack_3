@@ -5,7 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6f034188-f6fa-4c6f-8b38-8e5b49b2adbc" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/servicios-backend/servicio-usuarios/src/main/java/com/gamebakes/serviciousuarios/Config/GlobalExceptionHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gamebakes-web/src/App.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/gamebakes-web/src/App.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gamebakes-web/src/componentes/autenticacion/Login.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/gamebakes-web/src/componentes/autenticacion/Login.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gamebakes-web/src/componentes/autenticacion/Registro.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/gamebakes-web/src/componentes/autenticacion/Registro.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gamebakes-web/src/componentes/autenticacion/authUtils.js" beforeDir="false" afterPath="$PROJECT_DIR$/gamebakes-web/src/componentes/autenticacion/authUtils.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gamebakes-web/src/componentes/resenas/ResenasProducto.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/gamebakes-web/src/componentes/resenas/ResenasProducto.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gamebakes-web/src/componentes/seguimiento_pedidos/SeguimientoPedidos.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/gamebakes-web/src/componentes/seguimiento_pedidos/SeguimientoPedidos.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-usuarios/src/main/java/com/gamebakes/serviciousuarios/Config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-usuarios/src/main/java/com/gamebakes/serviciousuarios/Config/SecurityConfig.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-usuarios/src/main/java/com/gamebakes/serviciousuarios/Controller/UsuarioController.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-usuarios/src/main/java/com/gamebakes/serviciousuarios/Controller/UsuarioController.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -15,6 +24,13 @@
   </component>
   <component name="ComposerSettings">
     <execution />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -44,23 +60,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;Spring Boot.ServicioUsuariosApplication.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;feature/Luis&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/luise/Desktop/FullStack_3&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "Spring Boot.ServicioUsuariosApplication.executor": "Run",
+    "git-widget-placeholder": "feature/Luis",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/luise/Desktop/FullStack_3",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "run.configurations.included.in.services": "true",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunDashboard">
     <option name="configurationTypes">
       <set>
@@ -69,6 +91,17 @@
         <option value="QuarkusRunConfigurationType" />
         <option value="SpringBootApplicationConfigurationType" />
       </set>
+    </option>
+    <option name="configurationStatuses">
+      <map>
+        <entry key="SpringBootApplicationConfigurationType">
+          <value>
+            <map>
+              <entry key="ServicioUsuariosApplication" value="STOPPED" />
+            </map>
+          </value>
+        </entry>
+      </map>
     </option>
   </component>
   <component name="RunManager" selected="Spring Boot.ServicioUsuariosApplication">
@@ -110,6 +143,7 @@
       <updated>1777525029357</updated>
       <workItem from="1777525030941" duration="240000" />
       <workItem from="1777832998942" duration="35000" />
+      <workItem from="1777952702085" duration="4643000" />
     </task>
     <servers />
   </component>
