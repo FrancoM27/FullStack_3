@@ -4,6 +4,8 @@ import ResenasProducto from './componentes/resenas/ResenasProducto'
 import logo from './assets/logo_gamebakes.png'
 import Login from './componentes/autenticacion/Login'
 import Registro from './componentes/autenticacion/Registro'
+import SolicitarRecuperacion from './componentes/autenticacion/SolicitarRecuperacion'
+import RestablecerPassword from './componentes/autenticacion/RestablecerPassword'
 import { getAuthData } from './componentes/autenticacion/authUtils'
 
 function App() {
@@ -13,6 +15,13 @@ function App() {
             return { loggedIn: true, rol: auth.rol, id: auth.id };
         }
         return { loggedIn: false, rol: 'cliente', id: null };
+    });
+
+    const [vistaRecuperacion, setVistaRecuperacion] = useState(false);
+
+    const [tokenRecuperacion, setTokenRecuperacion] = useState(() => {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('token');
     });
 
     const [mostrarRegistro, setMostrarRegistro] = useState(() => {
@@ -31,6 +40,7 @@ function App() {
     const manejarCambioVista = (esRegistro) => {
         setMostrarRegistro(esRegistro);
         sessionStorage.setItem('view', esRegistro ? 'registro' : 'login');
+        setVistaRecuperacion(false);
     };
 
     const cerrarSesion = () => {
@@ -38,9 +48,27 @@ function App() {
         setUsuario({ loggedIn: false, rol: 'cliente', id: null });
         setSeccionActiva('inicio');
         setMostrarRegistro(false);
+        setVistaRecuperacion(false);
     };
 
     if (!usuario.loggedIn) {
+        if (tokenRecuperacion) {
+            return (
+                <RestablecerPassword
+                    token={tokenRecuperacion}
+                    alFinalizar={() => {
+                        setTokenRecuperacion(null);
+                        window.history.replaceState({}, document.title, "/");
+                        setVistaRecuperacion(false);
+                    }}
+                />
+            );
+        }
+
+        if (vistaRecuperacion) {
+            return <SolicitarRecuperacion alVolverAlLogin={() => setVistaRecuperacion(false)} />;
+        }
+
         return mostrarRegistro
             ? <Registro alVolverAlLogin={() => manejarCambioVista(false)} />
             : <Login
@@ -50,6 +78,7 @@ function App() {
                     sessionStorage.removeItem('view');
                 }}
                 alCambiarARegistro={() => manejarCambioVista(true)}
+                alOlvidarPassword={() => setVistaRecuperacion(true)}
             />
     }
 

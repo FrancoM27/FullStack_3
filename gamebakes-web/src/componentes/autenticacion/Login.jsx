@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function Login({ onLoginSuccess, alCambiarARegistro }) {
+export default function Login({ onLoginSuccess, alCambiarARegistro, alOlvidarPassword }) {
     const [datos, setDatos] = useState({ identifier: '', password: '' });
     const [mostrarPassword, setMostrarPassword] = useState(false);
     const [error, setError] = useState('');
@@ -28,11 +28,11 @@ export default function Login({ onLoginSuccess, alCambiarARegistro }) {
                 onLoginSuccess();
             } else {
                 const errorData = await response.json().catch(() => ({}));
-                setError(`❌ ${data.message || "Error en el registro"}`);
+                setError(`❌ ${errorData.message || "Usuario o contraseña incorrectos"}`);
             }
         } catch (err) {
             console.error("Error detallado: ", err)
-            setError('📡 Error de conexión.');
+            setError('📡 Error de conexión con el servidor.');
         }
     };
 
@@ -79,6 +79,15 @@ export default function Login({ onLoginSuccess, alCambiarARegistro }) {
                         </button>
                     </div>
 
+                    <div style={{ textAlign: 'right', marginBottom: '20px' }}>
+                        <span
+                            onClick={alOlvidarPassword}
+                            style={{...linkStyle, fontSize: '0.85rem', color: '#888'}}
+                        >
+                            ¿Olvidaste tu contraseña?
+                        </span>
+                    </div>
+
                     <button type="submit" style={{...btnStyle, boxShadow: `0 5px 15px ${colorCian}4d`}}>
                         ENTRAR AL SISTEMA
                     </button>
@@ -90,8 +99,8 @@ export default function Login({ onLoginSuccess, alCambiarARegistro }) {
                         onClick={alCambiarARegistro}
                         style={{...linkStyle, color: colorCian}}
                     >
-            Crea tu avatar
-          </span>
+                        Crea tu avatar
+                    </span>
                 </p>
             </div>
         </div>
