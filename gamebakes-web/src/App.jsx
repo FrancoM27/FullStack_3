@@ -6,6 +6,8 @@ import Login from './componentes/autenticacion/Login'
 import Registro from './componentes/autenticacion/Registro'
 import SolicitarRecuperacion from './componentes/autenticacion/SolicitarRecuperacion'
 import RestablecerPassword from './componentes/autenticacion/RestablecerPassword'
+import GestionProductos from './componentes/productos/GestionProductos'
+
 import { getAuthData } from './componentes/autenticacion/authUtils'
 
 function App() {
@@ -186,6 +188,10 @@ function App() {
                             --- Fin de la sección de feedback ---
                         </p>
                     </div>
+                )}
+
+                {seccionActiva === 'productos' && (
+                    <GestionProductos vendedorId={usuario.id}/>
                 )}
 
                 {seccionActiva === 'inicio' && (
