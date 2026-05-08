@@ -11,9 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/usuarios")
-@CrossOrigin(origins = "*")
 public class UsuarioController {
 
     @Autowired
@@ -37,5 +40,27 @@ public class UsuarioController {
     public ResponseEntity<String> login(@Valid @RequestBody LoginDTO dto) {
         String token = usuarioService.loginUsuario(dto);
         return ResponseEntity.ok(token);
+    }
+
+    @PostMapping("/recuperacion/solicitar")
+    public ResponseEntity<Map<String, String>> solicitarRecuperacion(@RequestBody Map<String, String> request){
+        String email = request.get("email");
+        usuarioService.solicitarRecuperacion(email);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Se ha enviado un enlace de recuperación a tu correo.");
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/recuperacion/confirmar")
+    public ResponseEntity<Map<String, String>> confirmarRecuperacion(@RequestBody Map<String, String> request){
+        String token = request.get("token");
+        String nuevaPassword = request.get("password");
+
+        usuarioService.completarRecuperacion(token, nuevaPassword);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Contraseña actualizada con éxito. Ya puedes iniciar sesión");
+        return ResponseEntity.ok(response);
     }
 }

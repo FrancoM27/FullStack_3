@@ -1,112 +1,113 @@
 import React, { useState } from 'react';
 
 export default function Registro({ alVolverAlLogin }) {
-    const [form, setForm] = useState({ 
-        username: '', 
-        email: '', 
-        password: '', 
+    const [form, setForm] = useState({
+        username: '',
+        email: '',
+        password: '',
+        confirmarPassword: '',
         nombreCompleto: '',
-        rol: 'cliente' 
+        rol: 'cliente'
     });
+    const [mostrarPassword, setMostrarPassword] = useState(false);
+    const [mostrarConfirmar, setMostrarConfirmar] = useState(false);
+    const [error, setError] = useState('');
+    const colorCian = '#00d4ff';
 
     const handleRegistro = async (e) => {
         e.preventDefault();
-        
-        // 1. Preparamos los datos para que coincidan con el DTO de Java
+        setError('');
+
+        if (form.password.length < 8) {
+            setError('⚠️ La contraseña debe tener al menos 8 caracteres.');
+            return;
+        }
+        if (!/[A-Z]/.test(form.password)) {
+            setError('⚠️ La contraseña requiere al menos una letra mayúscula.');
+            return;
+        }
+        if (form.password !== form.confirmarPassword) {
+            setError('⚠️ ¡Error! Las contraseñas no coinciden.');
+            return;
+        }
+
         const datosParaEnviar = {
             username: form.username,
             email: form.email,
             password: form.password,
             nombreCompleto: form.nombreCompleto,
-            rol: form.rol.toUpperCase() //Spring Boot espera CLIENTE o VENDEDOR
+            rol: form.rol.toUpperCase()
         };
 
-        console.log("Intentando registrar en el puerto 8080:", datosParaEnviar);
-
         try {
-            // 2. Realizamos la petición al puerto 8080 (donde está Usuarios)
             const response = await fetch('http://localhost:8080/api/usuarios/registrar', {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(datosParaEnviar)
             });
 
-            // 3. Manejo de la respuesta
+            const data = await response.json().catch(() => null);
+
             if (response.ok) {
-                const data = await response.json();
-                console.log("Registro exitoso:", data);
-                alert(`🚀 ¡Cuenta de ${form.rol.toUpperCase()} creada con éxito!`);
-                alVolverAlLogin(); //Te redirige al login automáticamente
+                alert(`🚀 ¡Cuenta creada! Ya puedes iniciar sesión.`);
+                alVolverAlLogin();
             } else {
-                //Si el servidor responde con error (ej: email duplicado)
-                const errorData = await response.json().catch(() => ({}));
-                console.error("Respuesta de error del servidor:", errorData);
-                alert(`❌ Error al registrar: ${errorData.message || "Verifica los datos o el correo"}`);
+                setError(`❌ ${data?.message || "Error en el registro (Status: " + response.status + ")"}`);
             }
-        } catch (error) {
-            //Si el servidor está apagado o hay error de red/CORS
-            console.error("Error crítico de conexión:", error);
-            alert("📡 No se pudo conectar con el servidor. Revisa que el microservicio de Usuarios (puerto 8080) esté encendido.");
+        } catch (err) {
+            setError('📡 Error crítico: No se pudo contactar al servidor.');
         }
     };
 
     return (
         <div style={containerStyle}>
             <div style={cardStyle}>
-                <h2 style={{ color: '#00d4ff', textAlign: 'center', marginBottom: '20px' }}>📝 NUEVA CUENTA</h2>
-                <form onSubmit={handleRegistro}>
-                    <input 
-                        type="text" 
-                        placeholder="Nombre Real" 
-                        style={inputStyle} 
-                        required
-                        onChange={(e) => setForm({...form, nombreCompleto: e.target.value})} 
-                    />
-                    <input 
-                        type="text" 
-                        placeholder="Username" 
-                        style={inputStyle} 
-                        required
-                        onChange={(e) => setForm({...form, username: e.target.value})} 
-                    />
-                    <input 
-                        type="email" 
-                        placeholder="Email" 
-                        style={inputStyle} 
-                        required
-                        onChange={(e) => setForm({...form, email: e.target.value})} 
-                    />
-                    <input 
-                        type="password" 
-                        placeholder="Contraseña" 
-                        style={inputStyle} 
-                        required
-                        onChange={(e) => setForm({...form, password: e.target.value})} 
-                    />
-                    
-                    <label style={{ color: '#00d4ff', display: 'block', marginBottom: '10px', fontSize: '0.8rem' }}>TIPO DE PERFIL:</label>
-                    <select 
-                        style={inputStyle} 
-                        value={form.rol} 
-                        onChange={(e) => setForm({...form, rol: e.target.value})}
-                    >
-                        <option value="cliente">🎮 GAMER (CLIENTE)</option>
-                        <option value="vendedor">🧁 MASTER BAKER (VENDEDOR)</option>
-                    </select>
+                <div style={{ textAlign: 'center', marginBottom: '25px' }}>
+                    <span style={{ fontSize: '2.5rem' }}>📝</span>
+                    <h2 style={{ ...titleStyle, color: colorCian }}>NUEVA CUENTA</h2>
+                </div>
 
-                    <button type="submit" style={btnStyle}>Crear Cuenta</button>
+                {error && <p style={errorStyle}>{error}</p>}
+
+                <form onSubmit={handleRegistro}>
+                    <div style={inputGroup}>
+                        <input type="text" placeholder="Nombre Real" style={inputStyle} value={form.nombreCompleto} required onChange={(e) => setForm({...form, nombreCompleto: e.target.value})} />
+                    </div>
+                    <div style={inputGroup}>
+                        <input type="text" placeholder="Username" style={inputStyle} value={form.username} required onChange={(e) => setForm({...form, username: e.target.value})} />
+                    </div>
+                    <div style={inputGroup}>
+                        <input type="email" placeholder="Email" style={inputStyle} value={form.email} required onChange={(e) => setForm({...form, email: e.target.value})} />
+                    </div>
+                    <div style={{...inputGroup, position: 'relative'}}>
+                        <input type={mostrarPassword ? 'text' : 'password'} placeholder="Contraseña (8+ carac, 1 Mayús)" style={inputStyle} value={form.password} required onChange={(e) => setForm({...form, password: e.target.value})} />
+                        <button type="button" onClick={() => setMostrarPassword(!mostrarPassword)} style={eyeButtonStyle}>{mostrarPassword ? '👁️‍🗨️' : '👁️'}</button>
+                    </div>
+                    <div style={{...inputGroup, position: 'relative'}}>
+                        <input type={mostrarConfirmar ? 'text' : 'password'} placeholder="Repetir Contraseña" style={inputStyle} value={form.confirmarPassword} required onChange={(e) => setForm({...form, confirmarPassword: e.target.value})} />
+                        <button type="button" onClick={() => setMostrarConfirmar(!mostrarConfirmar)} style={eyeButtonStyle}>{mostrarConfirmar ? '👁️‍🗨️' : '👁️'}</button>
+                    </div>
+                    <div style={inputGroup}>
+                        <label style={{ color: colorCian, display: 'block', marginBottom: '8px', fontSize: '0.8rem', fontWeight: 'bold' }}>TIPO DE PERFIL:</label>
+                        <select style={{...inputStyle, appearance: 'none', cursor: 'pointer'}} value={form.rol} onChange={(e) => setForm({...form, rol: e.target.value})}>
+                            <option value="cliente" style={{backgroundColor: '#1a0b2e'}}>🎮 GAMER</option>
+                            <option value="vendedor" style={{backgroundColor: '#1a0b2e'}}>🧁 MASTER BAKER</option>
+                        </select>
+                    </div>
+                    <button type="submit" style={{...btnStyle, boxShadow: `0 5px 15px ${colorCian}4d`}}>CREAR CUENTA</button>
                 </form>
-                <button onClick={alVolverAlLogin} style={{ background: 'none', border: 'none', color: '#888', width: '100%', marginTop: '10px', cursor: 'pointer' }}>VOLVER</button>
+                <button onClick={alVolverAlLogin} style={backButtonStyle}>VOLVER AL LOGIN</button>
             </div>
         </div>
     );
 }
 
-// Estilos
-const containerStyle = { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' };
-const cardStyle = { background: 'rgba(255, 255, 255, 0.05)', padding: '40px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', width: '350px' };
-const inputStyle = { width: '100%', padding: '12px', marginBottom: '15px', backgroundColor: 'rgba(0,0,0,0.4)', border: '1px solid #00d4ff', borderRadius: '8px', color: 'white', boxSizing: 'border-box' };
-const btnStyle = { width: '100%', padding: '12px', backgroundColor: '#00d4ff', color: 'black', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', textTransform: 'uppercase' };
+const containerStyle = { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', padding: '20px' };
+const cardStyle = { background: 'rgba(20, 10, 35, 0.95)', padding: '40px', borderRadius: '24px', border: '1px solid rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(15px)', width: '420px', boxShadow: '0 20px 50px rgba(0,0,0,0.8)', boxSizing: 'border-box' };
+const titleStyle = { letterSpacing: '3px', fontSize: '1.6rem', fontWeight: '900', textTransform: 'uppercase' };
+const inputGroup = { marginBottom: '15px' };
+const inputStyle = { width: '100%', padding: '14px', paddingRight: '45px', fontSize: '0.95rem', backgroundColor: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: 'white', outline: 'none', boxSizing: 'border-box' };
+const eyeButtonStyle = { position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#00d4ff', cursor: 'pointer', fontSize: '1.1rem' };
+const btnStyle = { width: '100%', padding: '16px', backgroundColor: '#00d4ff', color: 'black', border: 'none', borderRadius: '12px', fontWeight: '900', fontSize: '1rem', cursor: 'pointer', textTransform: 'uppercase', marginTop: '10px' };
+const backButtonStyle = { background: 'none', border: 'none', color: '#888', width: '100%', marginTop: '15px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold', textDecoration: 'underline' };
+const errorStyle = { color: '#ff4d4d', backgroundColor: 'rgba(255, 77, 77, 0.1)', padding: '10px', borderRadius: '8px', fontSize: '0.85rem', textAlign: 'center', marginBottom: '15px', border: '1px solid rgba(255, 77, 77, 0.3)' };
