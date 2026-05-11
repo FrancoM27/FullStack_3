@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import DetalleProducto from './DetalleProducto'; // <--- Importamos el nuevo archivo
+import DetalleProducto from './DetalleProducto';
 
 const CATEGORIAS = ["Tortas", "Cupcakes", "Galletas", "Pies & Tartas", "Edición Especial"];
 
 export default function GestionProductos({ vendedorId }) {
     const [productos, setProductos] = useState([]);
     const [cargando, setCargando] = useState(true);
-    const [vista, setVista] = useState('grid'); // 'grid', 'form', 'edit', 'detalle'
+    const [vista, setVista] = useState('grid');
     const [seleccionado, setSeleccionado] = useState(null);
+    const [error, setError] = useState('');
 
     const [nuevoProd, setNuevoProd] = useState({
         nombre: '', descripcion: '', precio: '', stock: '', categoria: CATEGORIAS[0], imagenUrl: ''
@@ -16,7 +17,13 @@ export default function GestionProductos({ vendedorId }) {
     const token = sessionStorage.getItem('token');
     const colorCian = '#00d4ff';
 
-    useEffect(() => { if (vendedorId) obtenerProductos(); }, [vendedorId]);
+    useEffect(() => {
+        if (vendedorId) {
+            obtenerProductos();
+        } else {
+            setCargando(false);
+        }
+    }, [vendedorId]);
 
     const obtenerProductos = async () => {
         setCargando(true);
@@ -24,11 +31,25 @@ export default function GestionProductos({ vendedorId }) {
             const response = await fetch(`http://localhost:8085/api/productos/vendedor/${vendedorId}`);
             const data = await response.json();
             setProductos(data);
-        } catch (err) { console.error(err); } finally { setCargando(false); }
+        } catch (err) {
+            console.error("Error cargando productos:", err);
+        } finally {
+            setCargando(false);
+        }
     };
 
     const handleGuardar = async (e) => {
         e.preventDefault();
+        setError('');
+
+        const p = vista === 'edit' ? seleccionado.precio : nuevoProd.precio;
+        const s = vista === 'edit' ? seleccionado.stock : nuevoProd.stock;
+
+        if (p < 0 || s < 0) {
+            setError("⚠️ El precio y el stock no pueden ser negativos.");
+            return;
+        }
+
         const esEdit = vista === 'edit';
         const url = esEdit ? `http://localhost:8085/api/productos/${seleccionado.id}` : 'http://localhost:8085/api/productos';
         const metodo = esEdit ? 'PUT' : 'POST';
@@ -46,8 +67,12 @@ export default function GestionProductos({ vendedorId }) {
                 setSeleccionado(null);
                 setNuevoProd({ nombre: '', descripcion: '', precio: '', stock: '', categoria: CATEGORIAS[0], imagenUrl: '' });
                 obtenerProductos();
+            } else {
+                setError("❌ Error al guardar. Revisa los datos.");
             }
-        } catch (err) { alert("Error de conexión."); }
+        } catch (err) {
+            setError("🔥 Error de conexión con el servidor.");
+        }
     };
 
     const handleEliminar = async (id) => {
@@ -59,7 +84,6 @@ export default function GestionProductos({ vendedorId }) {
         obtenerProductos();
     };
 
-    // --- LÓGICA DE NAVEGACIÓN ---
     if (vista === 'detalle') {
         return <DetalleProducto
             producto={seleccionado}
@@ -68,47 +92,63 @@ export default function GestionProductos({ vendedorId }) {
         />;
     }
 
+    if (!vendedorId && !cargando) {
+        return <p style={{color: 'red', textAlign: 'center'}}>Error: No se pudo identificar al vendedor. Re-loguea.</p>;
+    }
+
     return (
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
             <div style={headerStyle}>
                 <h2 style={{ color: colorCian, margin: 0, letterSpacing: '2px' }}>
-                    {vista === 'grid' ? '📦 MI INVENTARIO' : '✏️ EDITAR PRODUCTO'}
+                    {vista === 'grid' ? '📦 MI INVENTARIO' : (vista === 'edit' ? '✏️ EDITAR PRODUCTO' : '🚀 NUEVO PRODUCTO')}
                 </h2>
                 {vista === 'grid' ? (
-                    <button onClick={() => setVista('form')} style={btnSubirStyle}>🚀 SUBIR PRODUCTO</button>
+                    <button onClick={() => { setVista('form'); setError(''); }} style={btnSubirStyle}>🚀 SUBIR PRODUCTO</button>
                 ) : (
                     <button onClick={() => { setVista('grid'); setSeleccionado(null); }} style={btnVolverStyle}>⬅️ CANCELAR</button>
                 )}
             </div>
 
-            {cargando ? <p style={{textAlign:'center', color: colorCian}}>Cargando base de datos...</p> : (
+            {cargando ? (
+                <p style={{textAlign:'center', color: colorCian}}>Cargando base de datos...</p>
+            ) : (
                 <>
                     {vista === 'grid' && (
                         <div style={gridStyle}>
-                            {productos.map(p => (
-                                <div key={p.id} style={cardStyle}>
-                                    <div style={{...imgContainer, backgroundImage: `url(${p.imagenUrl || 'https://via.placeholder.com/300x200'})`}}>
-                                        <span style={tagStyleGrid}>{p.categoria}</span>
-                                    </div>
-                                    <div style={contentStyle}>
-                                        <h3 style={{color: colorCian, margin: '0 0 10px 0'}}>{p.nombre}</h3>
-                                        <div style={infoRow}>
-                                            <span style={{fontWeight: 'bold'}}>${p.precio.toLocaleString()}</span>
-                                            <span style={{color: p.stock < 5 ? '#ff4444' : '#44ff44', fontSize: '0.8rem'}}>Stock: {p.stock}</span>
+                            {productos.length === 0 ? (
+                                <p style={{gridColumn: '1/-1', textAlign: 'center', color: '#666'}}>No tienes productos registrados.</p>
+                            ) : (
+                                productos.map(p => (
+                                    <div key={p.id} style={cardStyle}>
+                                        <div style={{...imgContainer, backgroundImage: `url(${p.imagenUrl || 'https://via.placeholder.com/300x200'})`}}>
+                                            <span style={tagStyleGrid}>{p.categoria}</span>
                                         </div>
-                                        <div style={btnGroupGrid}>
-                                            <button onClick={() => { setSeleccionado(p); setVista('detalle'); }} style={btnMini}>VER</button>
-                                            <button onClick={() => { setSeleccionado(p); setVista('edit'); }} style={btnMini}>EDITAR</button>
-                                            <button onClick={() => handleEliminar(p.id)} style={{...btnMini, color: '#ff4444'}}>BORRAR</button>
+                                        <div style={contentStyle}>
+                                            <h3 style={{color: colorCian, margin: '0 0 10px 0'}}>{p.nombre}</h3>
+                                            <div style={infoRow}>
+                                                <span style={{fontWeight: 'bold'}}>${p.precio.toLocaleString()}</span>
+                                                <span style={{color: p.stock < 5 ? '#ff4444' : '#44ff44', fontSize: '0.8rem'}}>Stock: {p.stock}</span>
+                                            </div>
+                                            <div style={btnGroupGrid}>
+                                                <button onClick={() => { setSeleccionado(p); setVista('detalle'); }} style={btnMini}>VER</button>
+                                                <button onClick={() => { setSeleccionado(p); setVista('edit'); }} style={btnMini}>EDITAR</button>
+                                                <button onClick={() => handleEliminar(p.id)} style={{...btnMini, color: '#ff4444'}}>BORRAR</button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     )}
 
                     {(vista === 'form' || vista === 'edit') && (
                         <div style={formCardStyle}>
+                            {error && (
+                                <div style={{ backgroundColor: 'rgba(255, 68, 68, 0.1)', color: '#ff4444', padding: '15px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #ff4444', textAlign: 'center', fontWeight: 'bold' }}>
+                                    {error}
+                                </div>
+                            )}
+
                             <form onSubmit={handleGuardar} style={gridForm}>
                                 <div style={fieldGroup}><label style={labelStyle}>Nombre</label>
                                     <input type="text" style={inputStyle} value={vista === 'edit' ? seleccionado.nombre : nuevoProd.nombre} onChange={e => vista === 'edit' ? setSeleccionado({...seleccionado, nombre: e.target.value}) : setNuevoProd({...nuevoProd, nombre: e.target.value})} required />
@@ -119,10 +159,10 @@ export default function GestionProductos({ vendedorId }) {
                                     </select>
                                 </div>
                                 <div style={fieldGroup}><label style={labelStyle}>Precio ($)</label>
-                                    <input type="number" style={inputStyle} value={vista === 'edit' ? seleccionado.precio : nuevoProd.precio} onChange={e => vista === 'edit' ? setSeleccionado({...seleccionado, precio: e.target.value}) : setNuevoProd({...nuevoProd, precio: e.target.value})} required />
+                                    <input type="number" min="0" style={inputStyle} value={vista === 'edit' ? seleccionado.precio : nuevoProd.precio} onChange={e => vista === 'edit' ? setSeleccionado({...seleccionado, precio: e.target.value}) : setNuevoProd({...nuevoProd, precio: e.target.value})} required />
                                 </div>
                                 <div style={fieldGroup}><label style={labelStyle}>Stock</label>
-                                    <input type="number" style={inputStyle} value={vista === 'edit' ? seleccionado.stock : nuevoProd.stock} onChange={e => vista === 'edit' ? setSeleccionado({...seleccionado, stock: e.target.value}) : setNuevoProd({...nuevoProd, stock: e.target.value})} required />
+                                    <input type="number" min="0" style={inputStyle} value={vista === 'edit' ? seleccionado.stock : nuevoProd.stock} onChange={e => vista === 'edit' ? setSeleccionado({...seleccionado, stock: e.target.value}) : setNuevoProd({...nuevoProd, stock: e.target.value})} required />
                                 </div>
                                 <div style={{...fieldGroup, gridColumn: 'span 2'}}><label style={labelStyle}>URL Imagen</label>
                                     <input type="text" style={inputStyle} value={vista === 'edit' ? seleccionado.imagenUrl : nuevoProd.imagenUrl} onChange={e => vista === 'edit' ? setSeleccionado({...seleccionado, imagenUrl: e.target.value}) : setNuevoProd({...nuevoProd, imagenUrl: e.target.value})} />
