@@ -22,11 +22,11 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Usuario> actualizarPerfil(@PathVariable Long id,
+    @PutMapping("/perfil")
+    public ResponseEntity<Usuario> actualizarPerfil(@RequestHeader("X-User-Id") String userId,
                                                    @Valid @RequestBody UsuarioDTO dto) {
         
-        Usuario usuarioActualizado = usuarioService.actualizarPerfil(id, dto);
+        Usuario usuarioActualizado = usuarioService.actualizarPerfil(Long.parseLong(userId), dto);
         return ResponseEntity.ok(usuarioActualizado);
     }
 
