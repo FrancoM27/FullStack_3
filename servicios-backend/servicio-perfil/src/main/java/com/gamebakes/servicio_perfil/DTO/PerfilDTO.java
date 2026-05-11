@@ -8,6 +8,7 @@ public class PerfilDTO {
     private Long usuarioId;
     private String username;
     private String email;
+    private String rol;
     private String nombreCompleto;
     private String telefono;
     private String direccion;

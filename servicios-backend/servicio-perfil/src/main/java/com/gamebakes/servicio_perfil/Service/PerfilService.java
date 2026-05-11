@@ -2,6 +2,7 @@ package com.gamebakes.servicio_perfil.Service;
 
 import com.gamebakes.servicio_perfil.DTO.PerfilDTO;
 import com.gamebakes.servicio_perfil.Model.Perfil;
+import com.gamebakes.servicio_perfil.Model.Rol;
 import com.gamebakes.servicio_perfil.Model.Usuario;
 import com.gamebakes.servicio_perfil.Repository.PerfilRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,15 @@ public class PerfilService {
         
         Usuario usuario = new Usuario();
         usuario.setId(perfilDTO.getUsuarioId());
+        if (perfilDTO.getRol() != null && !perfilDTO.getRol().isBlank()) {
+            try {
+                usuario.setRol(Rol.valueOf(perfilDTO.getRol().toUpperCase()));
+            } catch (IllegalArgumentException ignored) {
+                usuario.setRol(Rol.CLIENTE);
+            }
+        } else {
+            usuario.setRol(Rol.CLIENTE);
+        }
         perfil.setUsuario(usuario);
         
         perfil.setNombreCompleto(perfilDTO.getNombreCompleto());
@@ -45,6 +55,13 @@ public class PerfilService {
                 perfil.setNombreCompleto(perfilDTO.getNombreCompleto());
                 perfil.setTelefono(perfilDTO.getTelefono());
                 perfil.setDireccion(perfilDTO.getDireccion());
+                if (perfilDTO.getRol() != null && perfil.getUsuario() != null && !perfilDTO.getRol().isBlank()) {
+                    try {
+                        perfil.getUsuario().setRol(Rol.valueOf(perfilDTO.getRol().toUpperCase()));
+                    } catch (IllegalArgumentException ignored) {
+                        perfil.getUsuario().setRol(Rol.CLIENTE);
+                    }
+                }
                 return convertirADTO(perfilRepository.save(perfil));
             });
     }
@@ -60,6 +77,9 @@ public class PerfilService {
             dto.setUsuarioId(perfil.getUsuario().getId());
             dto.setUsername(perfil.getUsuario().getUsername());
             dto.setEmail(perfil.getUsuario().getEmail());
+            if (perfil.getUsuario().getRol() != null) {
+                dto.setRol(perfil.getUsuario().getRol().name());
+            }
         }
         
         return dto;
