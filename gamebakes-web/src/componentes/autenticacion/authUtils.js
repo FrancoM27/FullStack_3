@@ -2,7 +2,6 @@ export const getAuthData = () => {
     try {
         const token = sessionStorage.getItem('token');
         if (!token) {
-            console.log("❌ getAuthData: No hay token en sessionStorage");
             return null;
         }
 
@@ -16,10 +15,9 @@ export const getAuthData = () => {
         console.log("✅ getAuthData - Payload decodificado:", payload);
 
         return {
-            id: payload.id || null,
-            // Importante: Asegúrate que tu backend mande el campo "rol"
+            id: payload.sub,
             rol: payload.rol ? payload.rol.toLowerCase() : 'cliente',
-            nombre: payload.sub
+            nombre: payload.username || 'Usuario'
         };
     } catch (e) {
         console.error("🔥 getAuthData - Error crítico decodificando:", e);

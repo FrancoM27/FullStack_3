@@ -12,15 +12,15 @@ import java.util.Date;
 @Component
 public class JwtUtils {
     private String secretKey = "GameBakes_Secret_Key_2026_No_Compartir";
-
     private long jwtExpiration = 86400000;
 
     public String generarToken(Usuario usuario) {
         Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
 
         return Jwts.builder()
-                .setSubject(usuario.getUsername())
-                .claim("id", usuario.getId())
+                .setSubject(usuario.getId().toString())
+
+                .claim("username", usuario.getUsername())
                 .claim("rol", usuario.getRol().name())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
