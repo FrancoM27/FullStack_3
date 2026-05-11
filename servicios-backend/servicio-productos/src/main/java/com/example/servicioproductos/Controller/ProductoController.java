@@ -1,5 +1,6 @@
 package com.example.servicioproductos.Controller;
 
+import org.springframework.security.core.Authentication;
 import com.example.servicioproductos.Model.Producto;
 import com.example.servicioproductos.Service.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,10 @@ public class ProductoController {
 
 
     @PostMapping
-    public ResponseEntity<Producto> crear (@RequestBody Producto producto){
+    public ResponseEntity<Producto> crear(@RequestBody Producto producto, Authentication authentication) {
+        Long vendedorId = Long.parseLong(authentication.getName());
+        producto.setVendedorId(vendedorId);
+
         return ResponseEntity.ok(productoService.guardar(producto));
     }
 
@@ -49,8 +53,11 @@ public class ProductoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Producto> actualizar(@PathVariable Long id, @RequestBody Producto producto){
+    public ResponseEntity<Producto> actualizar(@PathVariable Long id, @RequestBody Producto producto, Authentication authentication) {
+        Long vendedorId = Long.parseLong(authentication.getName());
         producto.setId(id);
+        producto.setVendedorId(vendedorId);
+
         return ResponseEntity.ok(productoService.guardar(producto));
     }
 }
