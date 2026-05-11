@@ -7,6 +7,7 @@ import Registro from './componentes/autenticacion/Registro'
 import SolicitarRecuperacion from './componentes/autenticacion/SolicitarRecuperacion'
 import RestablecerPassword from './componentes/autenticacion/RestablecerPassword'
 import GestionProductos from './componentes/productos/GestionProductos'
+import CatalogoProductos from './componentes/productos/CatalogoProductos'
 
 import { getAuthData } from './componentes/autenticacion/authUtils'
 
@@ -192,6 +193,10 @@ function App() {
 
                 {seccionActiva === 'productos' && (
                     <GestionProductos vendedorId={usuario.id}/>
+                )}
+
+                {seccionActiva === 'catalogo' && (
+                    <CatalogoProductos />
                 )}
 
                 {seccionActiva === 'inicio' && (
