@@ -45,9 +45,12 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                         .getBody();
 
                 String userId = claims.getSubject();
+                String rol = claims.get("rol", String.class);
+
 
                 ServerHttpRequest modifiedRequest = exchange.getRequest().mutate()
                         .header("X-User-Id", userId)
+                        .header("X-User-Role", rol)
                         .build();
 
                 return chain.filter(exchange.mutate().request(modifiedRequest).build());

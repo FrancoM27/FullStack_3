@@ -24,6 +24,12 @@ function App() {
     const [vistaRecuperacion, setVistaRecuperacion] = useState(false);
     const [productoSeleccionado, setProductoSeleccionado] = useState(null);
 
+    // 🔥 ESTADOS PARA LA CONFIRMACIÓN DE MERCADO PAGO 🔥
+    const pathname = window.location.pathname;
+    const urlParams = new URLSearchParams(window.location.search);
+    const externalReference = urlParams.get('external_reference');
+    const [estadoPago, setEstadoPago] = useState('procesando');
+
     const [tokenRecuperacion, setTokenRecuperacion] = useState(() => {
         const params = new URLSearchParams(window.location.search);
         return params.get('token');
@@ -36,6 +42,35 @@ function App() {
     const [seccionActiva, setSeccionActiva] = useState(() => {
         return sessionStorage.getItem('seccion') || 'inicio';
     });
+
+    // 🔥 EFECTO QUE SE DISPARA SOLO SI VENIMOS DE MERCADO PAGO 🔥
+    useEffect(() => {
+        if (pathname === '/pago-exito' && externalReference && estadoPago === 'procesando') {
+            const confirmarTransaccion = async () => {
+                try {
+                    const token = sessionStorage.getItem('token');
+                    const response = await fetch(`http://localhost:9000/api/pagos/confirmar/${externalReference}`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        console.log("Pago confirmado y stock descontado.");
+                        setEstadoPago('exito');
+                    } else {
+                        console.error("Falló la confirmación en el servidor.");
+                        setEstadoPago('error');
+                    }
+                } catch (err) {
+                    console.error("Error de conexión al confirmar pago", err);
+                    setEstadoPago('error');
+                }
+            };
+            confirmarTransaccion();
+        }
+    }, [pathname, externalReference, estadoPago]);
 
     const manejarCambioSeccion = (id) => {
         setSeccionActiva(id);
@@ -56,6 +91,57 @@ function App() {
         setVistaRecuperacion(false);
     };
 
+    // 🔥 PANTALLA DE ÉXITO DE MERCADO PAGO 🔥
+    if (pathname === '/pago-exito') {
+        return (
+            <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100vh',
+                backgroundColor: '#0a0a0a',
+                color: 'white',
+                textAlign: 'center'
+            }}>
+                <div style={{ fontSize: '5rem', marginBottom: '20px' }}>
+                    {estadoPago === 'procesando' ? '⏳' : estadoPago === 'exito' ? '🎉' : '⚠️'}
+                </div>
+
+                <h1 style={{ color: estadoPago === 'exito' ? '#00d4ff' : 'white', textTransform: 'uppercase', letterSpacing: '3px' }}>
+                    {estadoPago === 'procesando' ? 'Confirmando tu pago...' : estadoPago === 'exito' ? '¡Pago Confirmado!' : 'Hubo un problema'}
+                </h1>
+
+                <p style={{ color: '#888', marginBottom: '40px', maxWidth: '500px' }}>
+                    {estadoPago === 'procesando'
+                        ? 'No cierres esta ventana, estamos validando tu transacción con la cocina.'
+                        : estadoPago === 'exito'
+                            ? 'Tu pedido en Gamebakes ha sido procesado y el stock ha sido reservado con éxito.'
+                            : 'El cobro se realizó, pero tuvimos problemas confirmando la reserva del stock. Por favor, contáctanos.'}
+                </p>
+
+                {estadoPago !== 'procesando' && (
+                    <button
+                        onClick={() => window.location.href = '/'}
+                        style={{
+                            padding: '15px 40px',
+                            backgroundColor: 'transparent',
+                            color: '#00d4ff',
+                            border: '2px solid #00d4ff',
+                            borderRadius: '10px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            transition: '0.3s'
+                        }}
+                    >
+                        VOLVER A LA TIENDA
+                    </button>
+                )}
+            </div>
+        );
+    }
+
+    // FLUJO NORMAL DE LA APP (SI NO ESTÁ LOGUEADO)
     if (!usuario.loggedIn) {
         if (tokenRecuperacion) {
             return (
@@ -94,7 +180,7 @@ function App() {
     const menuCliente = [
         { id: 'inicio', nombre: '🎮 Inicio' },
         { id: 'catalogo', nombre: '🍰 Catálogo' },
-        { id: 'carrito', nombre: '🛒 Mi Carrito' }, // <--- NUEVO ITEM
+        { id: 'carrito', nombre: '🛒 Mi Carrito' },
         { id: 'pedidos', nombre: '📦 Mis Pedidos' },
         { id: 'resenas', nombre: '⭐ Escribir Reseña' }
     ];

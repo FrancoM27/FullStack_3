@@ -11,6 +11,7 @@ import com.mercadopago.client.preference.PreferenceRequest;
 import com.mercadopago.resources.preference.Preference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -29,6 +30,8 @@ public class PagoService {
     public Pago iniciarPagoMP(SolicitudPagoDTO solicitud){
         Pago pago = new Pago();
         pago.setPedidoId(solicitud.getPedidoId());
+        pago.setProductoId(solicitud.getProductoId());
+        pago.setCantidad(solicitud.getCantidad());
         pago.setClienteId(solicitud.getClienteId());
         pago.setMonto(solicitud.getMonto());
         pago.setMetodoPago("MERCADO_PAGO");
@@ -39,9 +42,10 @@ public class PagoService {
         try{
             MercadoPagoConfig.setAccessToken(accessToken);
 
+            // 🔥 CORRECCIÓN 1: Le sacamos el "#null" al título por si MP lo estaba bloqueando
             PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
-                    .title("Pedido Gamebakes #" + solicitud.getPedidoId())
-                    .quantity(1)
+                    .title("Compra en Gamebakes")
+                    .quantity(1) // Lo dejamos en 1 porque el monto ya viene multiplicado desde React
                     .unitPrice(new BigDecimal(solicitud.getMonto()))
                     .build();
 
@@ -64,15 +68,22 @@ public class PagoService {
             Preference preference = client.create(preferenceRequest);
 
             pago.setTransaccionId(preference.getInitPoint());
-            return  pagoRepository.save(pago);
+            return pagoRepository.save(pago);
+
+            // 🔥 CORRECCIÓN 2: Atrapamos el error exacto de Mercado Pago
+        } catch (com.mercadopago.exceptions.MPApiException apiException) {
+            String errorReal = apiException.getApiResponse().getContent();
+            System.err.println("❌ ERROR EXACTO DE MERCADO PAGO: " + errorReal);
+            throw new RuntimeException("Error MP: " + errorReal);
         } catch(Exception e){
+            System.err.println("❌ ERROR GENERAL: " + e.getMessage());
             throw new RuntimeException("Error con Mercado Pago: "+ e.getMessage());
         }
     }
 
     public Pago confirmarPago(Long idPago, Long usuarioAutenticadoId){
         Pago pago = pagoRepository.findById(idPago)
-                .orElseThrow(() -> new RuntimeException("Error: Pago no ecnontrado"));
+                .orElseThrow(() -> new RuntimeException("Error: Pago no encontrado"));
 
         if (!pago.getClienteId().equals(usuarioAutenticadoId)) {
             throw new RuntimeException("No autorizado para realizar este pago");
@@ -80,11 +91,22 @@ public class PagoService {
 
         pago.setEstado("APROBADO");
         pago.setTransaccionId("MP-CONFIRM-"+ UUID.randomUUID().toString().substring(0, 8).toUpperCase());
-        return pagoRepository.save(pago);
+        pago = pagoRepository.save(pago);
+
+        try{
+            RestTemplate restTemplate = new RestTemplate();
+            String urlProducto = "http://localhost:8085/api/productos/"+ pago.getProductoId() + "/restar-stock?cantidad="  + pago.getCantidad();
+
+            restTemplate.put(urlProducto, null);
+            System.out.println("✅ Stock descontado exitosamente");
+        } catch(Exception e){
+            System.err.println("⚠️ Fallo en microservicio de productos al descontar stock: " + e.getMessage());
+        }
+
+        return pago;
     }
 
     public List<Pago> obtenerHistorialPorCliente(Long clienteId) {
         return pagoRepository.findByClienteId(clienteId);
     }
-
 }

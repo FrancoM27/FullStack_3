@@ -12,8 +12,6 @@ import com.gamebakes.servicio_catalogo.Service.CatalogoService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-
-
 @RestController
 @RequestMapping("/api/catalogo")
 public class CatalogoController {
@@ -31,7 +29,8 @@ public class CatalogoController {
         return catalogoService.verCatalogoPorCategoria(categoria);
     }
 
-
-
-
+    @GetMapping("/{id}")
+    public Catalogo obtenerPorId(@PathVariable Long id){
+        return catalogoService.verCatalogoPorId(id);
+    }
 }

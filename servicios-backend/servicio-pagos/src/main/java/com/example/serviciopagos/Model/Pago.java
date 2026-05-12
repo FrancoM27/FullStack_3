@@ -21,4 +21,6 @@ public class Pago {
     private String estado;
     private String transaccionId;
     private LocalDateTime fechaPago;
+    private Long productoId;
+    private Integer cantidad;
 }

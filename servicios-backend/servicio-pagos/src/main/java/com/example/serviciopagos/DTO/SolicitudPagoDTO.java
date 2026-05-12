@@ -8,4 +8,6 @@ public class SolicitudPagoDTO {
     private Long clienteId;
     private Double monto;
     private String metodo;
+    private Long productoId;
+    private Integer cantidad;
 }
