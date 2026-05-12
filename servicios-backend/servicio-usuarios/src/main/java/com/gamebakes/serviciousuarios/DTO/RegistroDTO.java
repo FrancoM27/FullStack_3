@@ -1,6 +1,6 @@
 package com.gamebakes.serviciousuarios.DTO;
 
-import com.gamebakes.serviciousuarios.Model.Rol;
+//import com.gamebakes.serviciousuarios.Model.Rol;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function DetalleProducto({ producto, alCerrar, alEditar }) {
+export default function DetalleProducto({ producto, alCerrar, alEditar, alPedir, esCliente = false }) {
     const colorCian = '#00d4ff';
 
     if (!producto) return null;
@@ -28,7 +28,19 @@ export default function DetalleProducto({ producto, alCerrar, alEditar }) {
                         </div>
                     </div>
 
-                    <button onClick={() => alEditar(producto)} style={btnEditarGrande}>✏️ EDITAR INFORMACIÓN</button>
+                    {esCliente && alPedir && (
+                        <button
+                            onClick={() => alPedir(producto)}
+                            style={btnPedidoGrande}
+                            disabled={producto.stock === 0}
+                        >
+                            {producto.stock === 0 ? 'SIN STOCK' : '🚀 HACER PEDIDO'}
+                        </button>
+                    )}
+
+                    {!esCliente && alEditar && (
+                        <button onClick={() => alEditar(producto)} style={btnEditarGrande}>✏️ EDITAR INFORMACIÓN</button>
+                    )}
                 </div>
             </div>
         </div>
@@ -44,3 +56,4 @@ const statsGrid = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px'
 const statItem = { color: 'white' };
 const btnVolverStyle = { background: 'none', border: '1px solid #444', color: '#888', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', marginBottom: '20px' };
 const btnEditarGrande = { padding: '15px', backgroundColor: '#00d4ff', color: 'black', fontWeight: 'bold', border: 'none', borderRadius: '10px', cursor: 'pointer', fontSize: '1rem' };
+const btnPedidoGrande = { padding: '15px', backgroundColor: '#10b981', color: 'white', fontWeight: 'bold', border: 'none', borderRadius: '10px', cursor: 'pointer', fontSize: '1rem' };
