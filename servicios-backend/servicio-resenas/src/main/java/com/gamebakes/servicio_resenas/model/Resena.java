@@ -22,7 +22,7 @@ public class Resena {
     
     private int estrellas; //Del 1 al 5
 
-    // Interacción del Vendedor
+    //Interacción del Vendedor
     private String respuestaVendedor; 
-    private Long vendedorId; // ID del vendedor dueño del producto
+    private Long vendedorId; //ID del vendedor dueño del producto
 }

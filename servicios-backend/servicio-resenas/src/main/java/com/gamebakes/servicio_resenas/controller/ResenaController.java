@@ -9,41 +9,42 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/resenas")
-@CrossOrigin(origins = "*")
 public class ResenaController {
     @Autowired
     private ResenaService resenaService;
 
-    // --- ENDPOINTS PARA EL CLIENTE ---
-
-    //Permite a cualquier usuario (o cliente logueado) ver las reseñas y calificación de un producto específico.
+    //Listar reseñas por producto (Público)
     @GetMapping("/producto/{id}")
     public ResponseEntity<List<Resena>> listarPorProducto(@PathVariable Long id) {
         List<Resena> resenas = resenaService.obtenerPorProducto(id);
         return ResponseEntity.ok(resenas);
     }
 
-    //Permite a un cliente logueado publicar una reseña
+    //Crear reseña (Protegido por Gateway)
     @PostMapping
-    public ResponseEntity<Resena> crear(@RequestBody Resena resena) {
+    public ResponseEntity<Resena> crear(
+            @RequestBody Resena resena,
+            @RequestHeader(value = "X-User-Id", required = false) String userId) {
+        
+        //Si el Gateway envió el ID del usuario, lo asignamos al clienteId del modelo
+        if (userId != null) {
+            resena.setClienteId(Long.parseLong(userId));
+        }
+
         Resena nuevaResena = resenaService.guardarResena(resena);
         return ResponseEntity.ok(nuevaResena);
     }
 
-
-    // --- ENDPOINTS PARA EL VENDEDOR ---
-
-    //Permite al vendedor visualizar los comentarios y calificaciones de TODOS sus productos
+    //Listar por vendedor
     @GetMapping("/vendedor/{vendedorId}")
     public ResponseEntity<List<Resena>> listarPorVendedor(@PathVariable Long vendedorId) {
         List<Resena> resenas = resenaService.obtenerPorVendedor(vendedorId);
         return ResponseEntity.ok(resenas);
     }
 
-    //Permite al vendedor responder a una reseña específica
+    //Responder reseña (Vendedor)
     @PutMapping("/{id}/responder")
     public ResponseEntity<Resena> responder(@PathVariable Long id, @RequestBody String respuesta) {
-        //Limpiamos posibles comillas extras si el front envía texto plano dentro de un JSON
         String textoLimpio = respuesta.replace("\"", "");
         Resena resenaActualizada = resenaService.responderResena(id, textoLimpio);
         return ResponseEntity.ok(resenaActualizada);

@@ -1,0 +1,66 @@
+server:
+  port: 9000
+
+spring:
+  cloud:
+    gateway:
+      routes:
+         #USUARIOS - RUTA PROTEGIDA (Perfil)
+        - id: servicio-usuarios-perfil
+          uri: http://localhost:8080
+          predicates:
+            - Path=/api/usuarios/perfil/**
+          filters:
+            - AuthenticationFilter
+
+        #USUARIOS - RUTAS PÚBLICAS (Login, Registro, etc)
+        - id: servicio-usuarios-publico
+          uri: http://localhost:8080
+          predicates:
+            - Path=/api/usuarios/**
+
+        # RESEÑAS
+        - id: servicio-resenas
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/resenas/**
+          filters:
+            - AuthenticationFilter
+
+        # PEDIDOS
+        - id: servicio-pedidos
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/pedidos/**
+          filters:
+            - AuthenticationFilter
+
+        # CATÁLOGO
+        - id: servicio-catalogo
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/catalogo/**
+
+        # PERFIL
+        - id: servicio-perfil
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/perfil/**
+          filters:
+            - AuthenticationFilter
+
+        # PRODUCTOS
+        - id: servicio-productos
+          uri: http://localhost:8085
+          predicates:
+            - Path=/api/productos/**
+          filters:
+            - AuthenticationFilter
+
+        # PAGOS
+        - id: servicio-pagos
+          uri: http://localhost:8086
+          predicates:
+            - Path=/api/pagos/**
+          filters:
+            - AuthenticationFilter
