@@ -2,8 +2,23 @@ server:
   port: 9000
 
 spring:
+  application:
+    name: api-gateway
   cloud:
     gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins: "http://localhost:5173"
+            allowed-methods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowed-headers: "*"
+            allow-credentials: true
       routes:
          #USUARIOS - RUTA PROTEGIDA (Perfil)
         - id: servicio-usuarios-perfil
@@ -35,12 +50,6 @@ spring:
           filters:
             - AuthenticationFilter
 
-        # CATÁLOGO
-        - id: servicio-catalogo
-          uri: http://localhost:8083
-          predicates:
-            - Path=/api/catalogo/**
-
         # PERFIL
         - id: servicio-perfil
           uri: http://localhost:8084
@@ -49,13 +58,21 @@ spring:
           filters:
             - AuthenticationFilter
 
-        # PRODUCTOS
-        - id: servicio-productos
+        # PRODUCTOS - PRIVADO (Crear, Editar, Borrar)
+        - id: servicio-productos-privado
           uri: http://localhost:8085
           predicates:
             - Path=/api/productos/**
+            - Method=POST, PUT, PATCH, DELETE
           filters:
             - AuthenticationFilter
+
+        # PRODUCTOS - PÚBLICO (Ver el catálogo)
+        - id: servicio-productos-publico
+          uri: http://localhost:8085
+          predicates:
+            - Path=/api/productos/**
+            - Method=GET, OPTIONS
 
         # PAGOS
         - id: servicio-pagos

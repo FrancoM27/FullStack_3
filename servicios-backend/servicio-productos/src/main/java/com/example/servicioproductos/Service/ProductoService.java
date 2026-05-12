@@ -47,4 +47,13 @@ public class ProductoService {
         p.setActivo(estado);
         return productoRepository.save(p);
     }
+
+    public Producto restarStock(Long id, int cantidad) {
+        Producto producto = obtenerPorId(id);
+        if (producto.getStock() < cantidad) {
+            throw new RuntimeException("Stock insuficiente en bodega para el producto: " + producto.getNombre());
+        }
+        producto.setStock(producto.getStock() - cantidad);
+        return productoRepository.save(producto);
+    }
 }

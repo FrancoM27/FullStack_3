@@ -19,4 +19,9 @@ public class CatalogoService {
     public List<Catalogo> verCatalogoPorCategoria(String categoria) {
         return catalogoRepository.findByCategoriaProducto(categoria);
     }
+
+    public Catalogo verCatalogoPorId(Long id) {
+        return catalogoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado en el catálogo"));
+    }
 }

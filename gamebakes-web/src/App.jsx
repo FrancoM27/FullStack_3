@@ -9,6 +9,7 @@ import RestablecerPassword from './componentes/autenticacion/RestablecerPassword
 import GestionProductos from './componentes/productos/GestionProductos'
 import CatalogoProductos from './componentes/productos/CatalogoProductos'
 import DetalleCatalogo from './componentes/productos/DetalleCatalogo'
+import Carrito from './componentes/productos/Carrito'
 
 import { getAuthData } from './componentes/autenticacion/authUtils'
 
@@ -40,6 +41,7 @@ function App() {
     const manejarCambioSeccion = (id) => {
         setSeccionActiva(id);
         sessionStorage.setItem('seccion', id);
+        setProductoSeleccionado(null);
     };
 
     const manejarCambioVista = (esRegistro) => {
@@ -94,7 +96,7 @@ function App() {
     const menuCliente = [
         { id: 'inicio', nombre: '🎮 Inicio' },
         { id: 'catalogo', nombre: '🍰 Catálogo' },
-        { id: 'carrito', nombre: '🛒 Mi Carrito' }, // <--- NUEVO ITEM
+        { id: 'carrito', nombre: '🛒 Mi Carrito' },
         { id: 'pedidos', nombre: '📦 Mis Pedidos' },
         { id: 'resenas', nombre: '⭐ Escribir Reseña' }
     ];
@@ -154,21 +156,7 @@ function App() {
                 </div>
 
                 <div style={{ paddingBottom: '10px' }}>
-                    <button
-                        onClick={cerrarSesion}
-                        style={{
-                            width: '100%',
-                            backgroundColor: 'transparent',
-                            color: '#ff4444',
-                            border: '1px solid #ff4444',
-                            padding: '12px',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontWeight: 'bold',
-                            textTransform: 'uppercase',
-                            fontSize: '0.8rem'
-                        }}
-                    >
+                    <button onClick={cerrarSesion} style={{ width: '100%', backgroundColor: 'transparent', color: '#ff4444', border: '1px solid #ff4444', padding: '12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.8rem' }}>
                         ❌ Cerrar Gestión
                     </button>
                 </div>
@@ -181,57 +169,31 @@ function App() {
                     </h1>
                 </header>
 
-                {(seccionActiva === 'pedidos' || seccionActiva === 'pedidos_gestion') && (
-                    <SeguimientoPedidos rol={usuario.rol} usuarioId={usuario.id} />
-                )}
-
-                {(seccionActiva === 'resenas' || seccionActiva === 'resenas_gestion') && (
-                    <div>
-                        <ResenasProducto rol={usuario.rol} usuarioId={usuario.id} />
-                        <p style={{ color: '#666', textAlign: 'center', marginTop: '20px', fontStyle: 'italic' }}>
-                            --- Fin de la sección de feedback ---
-                        </p>
-                    </div>
-                )}
-
-                {seccionActiva === 'productos' && (
-                    <GestionProductos vendedorId={usuario.id}/>
-                )}
+                {seccionActiva === 'pedidos' && <SeguimientoPedidos rol={usuario.rol} usuarioId={usuario.id} />}
+                {seccionActiva === 'resenas' && <ResenasProducto rol={usuario.rol} usuarioId={usuario.id} />}
+                {seccionActiva === 'productos' && <GestionProductos vendedorId={usuario.id}/>}
 
                 {seccionActiva === 'catalogo' && !productoSeleccionado && (
-                    <CatalogoProductos
-                        onVerDetalle={(id) => setProductoSeleccionado(id)}
-                    />
+                    <CatalogoProductos onVerDetalle={(id) => setProductoSeleccionado(id)} />
                 )}
 
                 {seccionActiva === 'catalogo' && productoSeleccionado && (
                     <DetalleCatalogo
                         productoId={productoSeleccionado}
                         rol={usuario.rol}
+                        usuarioId={usuario.id}
                         alVolver={() => setProductoSeleccionado(null)}
                     />
                 )}
 
                 {seccionActiva === 'carrito' && (
-                    <div style={{ textAlign: 'center', marginTop: '50px' }}>
-                        <h2 style={{ color: colorCian }}>🛒 Tu Carrito de Compras</h2>
-                        <p style={{ color: '#888' }}>Estamos construyendo esta sección...</p>
-                    </div>
+                    <Carrito usuarioId={usuario.id} />
                 )}
 
                 {seccionActiva === 'inicio' && (
                     <div style={{ textAlign: 'center', marginTop: '50px' }}>
-                        <h2 style={{ color: 'white' }}>¡Bienvenido Guerrero, de vuelta a la cocina!</h2>
-                        <p style={{ color: '#888' }}>Tu sesión como <strong>{usuario.rol}</strong> está activa.</p>
-                        <div style={{
-                            marginTop: '30px',
-                            padding: '20px',
-                            border: `1px dashed ${colorTema}`,
-                            borderRadius: '15px',
-                            display: 'inline-block'
-                        }}>
-                            <p>Selecciona una opción del menú para gestionar tus {usuario.rol === 'cliente' ? 'compras' : 'ventas'}.</p>
-                        </div>
+                        <h2 style={{ color: 'white' }}>¡Bienvenido Guerrero!</h2>
+                        <p style={{ color: '#888' }}>Sesión activa: <strong>{usuario.rol}</strong>.</p>
                     </div>
                 )}
             </main>
