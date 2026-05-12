@@ -8,6 +8,7 @@ import SolicitarRecuperacion from './componentes/autenticacion/SolicitarRecupera
 import RestablecerPassword from './componentes/autenticacion/RestablecerPassword'
 import GestionProductos from './componentes/productos/GestionProductos'
 import CatalogoProductos from './componentes/productos/CatalogoProductos'
+import DetalleCatalogo from './componentes/productos/DetalleCatalogo'
 
 import { getAuthData } from './componentes/autenticacion/authUtils'
 
@@ -21,6 +22,7 @@ function App() {
     });
 
     const [vistaRecuperacion, setVistaRecuperacion] = useState(false);
+    const [productoSeleccionado, setProductoSeleccionado] = useState(null);
 
     const [tokenRecuperacion, setTokenRecuperacion] = useState(() => {
         const params = new URLSearchParams(window.location.search);
@@ -92,6 +94,7 @@ function App() {
     const menuCliente = [
         { id: 'inicio', nombre: '🎮 Inicio' },
         { id: 'catalogo', nombre: '🍰 Catálogo' },
+        { id: 'carrito', nombre: '🛒 Mi Carrito' }, // <--- NUEVO ITEM
         { id: 'pedidos', nombre: '📦 Mis Pedidos' },
         { id: 'resenas', nombre: '⭐ Escribir Reseña' }
     ];
@@ -195,8 +198,25 @@ function App() {
                     <GestionProductos vendedorId={usuario.id}/>
                 )}
 
-                {seccionActiva === 'catalogo' && (
-                    <CatalogoProductos />
+                {seccionActiva === 'catalogo' && !productoSeleccionado && (
+                    <CatalogoProductos
+                        onVerDetalle={(id) => setProductoSeleccionado(id)}
+                    />
+                )}
+
+                {seccionActiva === 'catalogo' && productoSeleccionado && (
+                    <DetalleCatalogo
+                        productoId={productoSeleccionado}
+                        rol={usuario.rol}
+                        alVolver={() => setProductoSeleccionado(null)}
+                    />
+                )}
+
+                {seccionActiva === 'carrito' && (
+                    <div style={{ textAlign: 'center', marginTop: '50px' }}>
+                        <h2 style={{ color: colorCian }}>🛒 Tu Carrito de Compras</h2>
+                        <p style={{ color: '#888' }}>Estamos construyendo esta sección...</p>
+                    </div>
                 )}
 
                 {seccionActiva === 'inicio' && (
