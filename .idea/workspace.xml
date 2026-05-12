@@ -5,24 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0bd1e462-44e4-4aca-9a9b-ab0db1278c0e" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/gamebakes-web/src/componentes/productos/Carrito.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/Controller/CarritoController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/Model/CarritoItem.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/Repository/CarritoItemRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/Service/CarritoService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gamebakes-web/src/App.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/gamebakes-web/src/App.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gamebakes-web/src/componentes/productos/DetalleCatalogo.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/gamebakes-web/src/componentes/productos/DetalleCatalogo.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servicios-backend/api-gateway/src/main/java/com/example/apigateway/Filter/AuthenticationFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/api-gateway/src/main/java/com/example/apigateway/Filter/AuthenticationFilter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servicios-backend/api-gateway/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/api-gateway/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-catalogo/src/main/java/com/gamebakes/servicio_catalogo/Controller/CatalogoController.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-catalogo/src/main/java/com/gamebakes/servicio_catalogo/Controller/CatalogoController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-catalogo/src/main/java/com/gamebakes/servicio_catalogo/Model/Catalogo.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-catalogo/src/main/java/com/gamebakes/servicio_catalogo/Model/Catalogo.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-catalogo/src/main/java/com/gamebakes/servicio_catalogo/Service/CatalogoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-catalogo/src/main/java/com/gamebakes/servicio_catalogo/Service/CatalogoService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-catalogo/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-catalogo/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/Config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/Config/SecurityConfig.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/Controller/PagoController.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/Controller/PagoController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/DTO/SolicitudPagoDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/DTO/SolicitudPagoDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/Model/Pago.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/Model/Pago.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/Service/PagoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/Service/PagoService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-productos/src/main/java/com/example/servicioproductos/Config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-productos/src/main/java/com/example/servicioproductos/Config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-productos/src/main/java/com/example/servicioproductos/Controller/ProductoController.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-productos/src/main/java/com/example/servicioproductos/Controller/ProductoController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-productos/src/main/java/com/example/servicioproductos/Service/ProductoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-productos/src/main/java/com/example/servicioproductos/Service/ProductoService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-productos/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-productos/src/main/resources/application.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -206,7 +198,7 @@
       <workItem from="1778465238209" duration="36000" />
       <workItem from="1778465289881" duration="9725000" />
       <workItem from="1778476435016" duration="3694000" />
-      <workItem from="1778542664314" duration="12441000" />
+      <workItem from="1778542664314" duration="14217000" />
     </task>
     <servers />
   </component>

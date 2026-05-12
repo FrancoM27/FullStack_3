@@ -39,4 +39,9 @@ public class PagoController {
 
         return ResponseEntity.ok(pagoService.obtenerHistorialPorCliente(usuarioId));
     }
+
+    @PostMapping("/iniciar-desde-carrito/{clienteId}")
+    public ResponseEntity<Pago> iniciarDesdeCarrito(@PathVariable Long clienteId) {
+        return ResponseEntity.ok(pagoService.iniciarPagoCarrito(clienteId));
+    }
 }
