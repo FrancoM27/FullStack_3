@@ -4,14 +4,18 @@ import com.gamebakes.servicio_pedidos.model.Pedido;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
-    //Vista Cliente: Ver el seguimiento de sus propias compras
+    //Para el seguimiento del Cliente
     List<Pedido> findByClienteId(Long clienteId);
     
-    //Vista Vendedor: Ver los pedidos que le han hecho a él
+    //Para la gestión del Vendedor
     List<Pedido> findByVendedorId(Long vendedorId);
+
+    //Lo usamos para validar reseñas
+    Optional<Pedido> findFirstByClienteIdAndProductoIdAndEstado(Long clienteId, Long productoId, String estado);
 
 }
