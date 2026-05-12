@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import DetalleProducto from './DetalleProducto';
+import { getAuthData } from '../autenticacion/authUtils';
 
 const CatalogoProductos = () => {
     const [productos, setProductos] = useState([]);
@@ -6,6 +8,11 @@ const CatalogoProductos = () => {
     const [error, setError] = useState(null);
     const [filtroCategoria, setFiltroCategoria] = useState('Todos');
     const [categorias, setCategorias] = useState([]);
+    const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+    const [mensajePedido, setMensajePedido] = useState('');
+
+    const auth = getAuthData();
+    const esCliente = auth?.rol === 'cliente';
 
     useEffect(() => {
         traerProductosActivos();
@@ -33,8 +40,76 @@ const CatalogoProductos = () => {
         ? productos
         : productos.filter(p => p.categoria === filtroCategoria);
 
+    const abrirDetalle = (producto) => {
+        setProductoSeleccionado(producto);
+        setMensajePedido('');
+    };
+
+    const cerrarDetalle = () => {
+        setProductoSeleccionado(null);
+        setMensajePedido('');
+    };
+
+    const realizarPedido = async (producto) => {
+        if (!auth?.id) {
+            setMensajePedido('Debes iniciar sesión para realizar un pedido.');
+            return;
+        }
+
+        try {
+            setMensajePedido('Procesando pedido...');
+            const token = sessionStorage.getItem('token');
+            const pedidoBody = {
+                clienteId: auth.id,
+                clienteNombre: auth.nombre,
+                productoId: producto.id,
+                productoNombre: producto.nombre,
+                vendedorId: producto.vendedorId
+            };
+
+            const response = await fetch('http://localhost:8082/api/pedidos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(pedidoBody)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'No se pudo crear el pedido');
+            }
+
+            const data = await response.json();
+            setMensajePedido(`Pedido creado con éxito. ID: ${data.id}`);
+        } catch (err) {
+            console.error('Error al crear pedido:', err);
+            setMensajePedido('No se pudo realizar el pedido. Intenta de nuevo.');
+        }
+    };
+
     if (cargando) return <p style={{ color: '#888' }}>Cargando catálogo...</p>;
     if (error) return <p style={{ color: '#ff4444' }}>{error}</p>;
+
+    if (productoSeleccionado) {
+        return (
+            <div>
+                <DetalleProducto
+                    producto={productoSeleccionado}
+                    alCerrar={cerrarDetalle}
+                    alPedir={esCliente ? realizarPedido : undefined}
+                    esCliente={esCliente}
+                />
+
+                {mensajePedido && (
+                    <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#0d1a26', borderRadius: '12px', border: '1px solid #00d4ff', color: '#c8f2ff' }}>
+                        {mensajePedido}
+                    </div>
+                )}
+            </div>
+        );
+    }
 
     return (
         <div>
@@ -76,8 +151,10 @@ const CatalogoProductos = () => {
                             border: '1px solid rgba(0,212,255,0.3)',
                             borderRadius: '10px',
                             overflow: 'hidden',
-                            transition: 'transform 0.3s, box-shadow 0.3s'
+                            transition: 'transform 0.3s, box-shadow 0.3s',
+                            cursor: 'pointer'
                         }}
+                        onClick={() => abrirDetalle(producto)}
                         onMouseEnter={(e) => {
                             e.currentTarget.style.transform = 'translateY(-5px)';
                             e.currentTarget.style.boxShadow = '0 0 20px rgba(0,212,255,0.5)';

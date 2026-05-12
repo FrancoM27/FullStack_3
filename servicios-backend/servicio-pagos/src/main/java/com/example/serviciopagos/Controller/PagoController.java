@@ -2,7 +2,7 @@ package com.example.serviciopagos.Controller;
 
 import com.example.serviciopagos.DTO.SolicitudPagoDTO;
 import com.example.serviciopagos.Model.Pago;
-import com.example.serviciopagos.Security.JwtAuthenticationFilter;
+//import com.example.serviciopagos.Security.JwtAuthenticationFilter;
 import com.example.serviciopagos.Service.PagoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
