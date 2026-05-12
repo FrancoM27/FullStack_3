@@ -6,8 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="0bd1e462-44e4-4aca-9a9b-ab0db1278c0e" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servicios-backend/api-gateway/src/main/java/com/example/apigateway/Filter/AuthenticationFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/api-gateway/src/main/java/com/example/apigateway/filter/AuthenticationFilter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/Controller/PagoController.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/Controller/PagoController.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -191,7 +189,7 @@
       <workItem from="1778465238209" duration="36000" />
       <workItem from="1778465289881" duration="9725000" />
       <workItem from="1778476435016" duration="3694000" />
-      <workItem from="1778542664314" duration="14917000" />
+      <workItem from="1778542664314" duration="15219000" />
     </task>
     <servers />
   </component>
