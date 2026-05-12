@@ -28,11 +28,22 @@ export default function GestionProductos({ vendedorId }) {
     const obtenerProductos = async () => {
         setCargando(true);
         try {
-            const response = await fetch(`http://localhost:8085/api/productos/vendedor/${vendedorId}`);
+            const response = await fetch(`http://localhost:9000/api/productos/vendedor/${vendedorId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             const data = await response.json();
-            setProductos(data);
+
+            // Seguro de vida
+            if (Array.isArray(data)) {
+                setProductos(data);
+            } else {
+                setProductos([]);
+            }
         } catch (err) {
             console.error("Error cargando productos:", err);
+            setProductos([]);
         } finally {
             setCargando(false);
         }
@@ -51,7 +62,7 @@ export default function GestionProductos({ vendedorId }) {
         }
 
         const esEdit = vista === 'edit';
-        const url = esEdit ? `http://localhost:8085/api/productos/${seleccionado.id}` : 'http://localhost:8085/api/productos';
+        const url = esEdit ? `http://localhost:9000/api/productos/${seleccionado.id}` : 'http://localhost:9000/api/productos';
         const metodo = esEdit ? 'PUT' : 'POST';
         const dataBody = esEdit ? seleccionado : { ...nuevoProd, vendedorId };
 

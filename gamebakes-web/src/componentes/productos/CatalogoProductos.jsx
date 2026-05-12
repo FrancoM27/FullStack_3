@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const CatalogoProductos = () => {
+const CatalogoProductos = ({onVerDetalle}) => {
     const [productos, setProductos] = useState([]);
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState(null);
@@ -14,7 +14,7 @@ const CatalogoProductos = () => {
     const traerProductosActivos = async () => {
         try {
             setCargando(true);
-            const response = await fetch('http://localhost:8085/api/productos');
+            const response = await fetch('http://localhost:9000/api/productos');
             if (!response.ok) throw new Error('Error al traer productos');
             const data = await response.json();
             setProductos(data);
@@ -119,6 +119,28 @@ const CatalogoProductos = () => {
                                     Stock: {producto.stock}
                                 </span>
                             </div>
+
+                            <button
+                                onClick={() => onVerDetalle(producto.id)}
+                                style={{
+                                    width: '100%',
+                                    marginTop: '15px',
+                                    padding: '10px',
+                                    backgroundColor: 'transparent',
+                                    color: '#00d4ff',
+                                    border: '1px solid #00d4ff',
+                                    borderRadius: '5px',
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold',
+                                    textTransform: 'uppercase',
+                                    transition: '0.3s'
+                                }}
+                                onMouseEnter={(e) => { e.target.style.backgroundColor = 'rgba(0,212,255,0.1)' }}
+                                onMouseLeave={(e) => { e.target.style.backgroundColor = 'transparent' }}
+                            >
+                                Ver Producto
+                            </button>
+
                         </div>
                     </div>
                 ))}
