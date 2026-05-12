@@ -21,7 +21,6 @@ public class PagoController {
                                         @RequestHeader("X-User-Id") String usuarioIdStr){
         Long usuarioId = Long.parseLong(usuarioIdStr);
         solicitud.setClienteId(usuarioId);
-
         return ResponseEntity.ok(pagoService.iniciarPagoMP(solicitud));
     }
 
@@ -29,14 +28,12 @@ public class PagoController {
     public ResponseEntity<Pago> confirmar(@PathVariable Long idPago,
                                           @RequestHeader("X-User-Id") String usuarioIdStr) {
         Long usuarioId = Long.parseLong(usuarioIdStr);
-
         return ResponseEntity.ok(pagoService.confirmarPago(idPago, usuarioId));
     }
 
     @GetMapping("/historial")
     public ResponseEntity<List<Pago>> historialPropio(@RequestHeader("X-User-Id") String usuarioIdStr) {
         Long usuarioId = Long.parseLong(usuarioIdStr);
-
         return ResponseEntity.ok(pagoService.obtenerHistorialPorCliente(usuarioId));
     }
 

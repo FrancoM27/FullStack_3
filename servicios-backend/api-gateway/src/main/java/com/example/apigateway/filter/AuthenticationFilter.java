@@ -1,4 +1,4 @@
-package com.example.apigateway.Filter;
+package com.example.apigateway.filter;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -46,7 +46,6 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 
                 String userId = claims.getSubject();
                 String rol = claims.get("rol", String.class);
-
 
                 ServerHttpRequest modifiedRequest = exchange.getRequest().mutate()
                         .header("X-User-Id", userId)
