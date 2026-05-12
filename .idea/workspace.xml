@@ -5,7 +5,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0bd1e462-44e4-4aca-9a9b-ab0db1278c0e" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gamebakes-web/src/App.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/gamebakes-web/src/App.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gamebakes-web/src/componentes/productos/Carrito.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/gamebakes-web/src/componentes/productos/Carrito.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gamebakes-web/src/componentes/productos/CatalogoProductos.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/gamebakes-web/src/componentes/productos/CatalogoProductos.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gamebakes-web/src/componentes/productos/DetalleCatalogo.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/gamebakes-web/src/componentes/productos/DetalleCatalogo.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gamebakes-web/src/componentes/resenas/ResenasProducto.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/gamebakes-web/src/componentes/resenas/ResenasProducto.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gamebakes-web/src/componentes/seguimiento_pedidos/SeguimientoPedidos.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/gamebakes-web/src/componentes/seguimiento_pedidos/SeguimientoPedidos.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servicios-backend/api-gateway/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/api-gateway/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servicios-backend/api-gateway/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/api-gateway/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/Controller/PagoController.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/Controller/PagoController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/Service/CarritoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/Service/CarritoService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/Service/PagoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/java/com/example/serviciopagos/Service/PagoService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-pagos/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-pedidos/src/main/java/com/gamebakes/servicio_pedidos/controller/PedidoController.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-pedidos/src/main/java/com/gamebakes/servicio_pedidos/controller/PedidoController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-pedidos/src/main/java/com/gamebakes/servicio_pedidos/model/Pedido.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-pedidos/src/main/java/com/gamebakes/servicio_pedidos/model/Pedido.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-pedidos/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-pedidos/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-perfil/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-perfil/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-resenas/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-resenas/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-resenas/src/main/java/com/gamebakes/servicio_resenas/ServicioResenasApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-resenas/src/main/java/com/gamebakes/servicio_resenas/ServicioResenasApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servicios-backend/servicio-resenas/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/servicio-resenas/src/main/resources/application.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -67,8 +87,10 @@
     "Spring Boot.ApiGatewayApplication.executor": "Run",
     "Spring Boot.ServicioCatalogoApplication.executor": "Run",
     "Spring Boot.ServicioPagosApplication.executor": "Run",
+    "Spring Boot.ServicioPedidosApplication.executor": "Run",
     "Spring Boot.ServicioPerfilApplication.executor": "Run",
     "Spring Boot.ServicioProductosApplication.executor": "Run",
+    "Spring Boot.ServicioResenasApplication.executor": "Run",
     "Spring Boot.ServicioUsuariosApplication.executor": "Run",
     "git-widget-placeholder": "feature/Luis",
     "kotlin-language-version-configured": "true",
@@ -99,11 +121,13 @@
         <entry key="SpringBootApplicationConfigurationType">
           <value>
             <map>
-              <entry key="ApiGatewayApplication" value="STOPPED" />
+              <entry key="ApiGatewayApplication" value="FAILED" />
               <entry key="ServicioCatalogoApplication" value="STOPPED" />
               <entry key="ServicioPagosApplication" value="STOPPED" />
-              <entry key="ServicioPerfilApplication" value="STOPPED" />
+              <entry key="ServicioPedidosApplication" value="STOPPED" />
+              <entry key="ServicioPerfilApplication" value="FAILED" />
               <entry key="ServicioProductosApplication" value="STOPPED" />
+              <entry key="ServicioResenasApplication" value="STOPPED" />
               <entry key="ServicioUsuariosApplication" value="STOPPED" />
             </map>
           </value>
@@ -189,7 +213,7 @@
       <workItem from="1778465238209" duration="36000" />
       <workItem from="1778465289881" duration="9725000" />
       <workItem from="1778476435016" duration="3694000" />
-      <workItem from="1778542664314" duration="15219000" />
+      <workItem from="1778542664314" duration="24395000" />
     </task>
     <servers />
   </component>

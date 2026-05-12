@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { getAuthData } from '../autenticacion/authUtils';
 
-const Carrito = ({ usuarioId }) => {
+const Carrito = ({ usuarioId, onCambiarSeccion }) => {
     const [items, setItems] = useState([]);
     const [detallesProductos, setDetallesProductos] = useState({});
     const [cargando, setCargando] = useState(true);
     const [esperandoPago, setEsperandoPago] = useState(false);
     const [idPagoGenerado, setIdPagoGenerado] = useState(null);
+    const [mostrarExito, setMostrarExito] = useState(false);
 
     const token = sessionStorage.getItem('token');
 
@@ -37,7 +39,7 @@ const Carrito = ({ usuarioId }) => {
                     nuevosDetalles[item.productoId] = await res.json();
                 }
             } catch (e) {
-                console.error("Error cargando producto");
+                console.error(e);
             }
         }
         setDetallesProductos(nuevosDetalles);
@@ -62,26 +64,68 @@ const Carrito = ({ usuarioId }) => {
         }
     };
 
+    const [procesando, setProcesando] = useState(false);
+
     const confirmarPagoManual = async () => {
+        if (procesando) return;
+        setProcesando(true);
         try {
+            const auth = getAuthData();
+            const nombreReal = auth && auth.nombre ? auth.nombre : 'Cliente';
+
             const response = await fetch(`http://localhost:9000/api/pagos/confirmar/${idPagoGenerado}`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'X-User-Id': String(usuarioId),
+                    'X-User-Name': nombreReal
+                }
             });
             if (response.ok) {
-                alert("¡Pago verificado! El carrito se ha vaciado y tu orden está en camino. 🧁");
-                setItems([]); // Vaciamos la vista
+                setMostrarExito(true);
+                setItems([]);
                 setEsperandoPago(false);
-                window.location.reload();
+            } else {
+                alert("El servidor no pudo confirmar el pago.");
             }
         } catch (err) {
-            alert("Todavía no se confirma el pago.");
+            alert("Error al confirmar.");
+        } finally {
+            setProcesando(false);
         }
     };
 
     const total = items.reduce((acc, item) => acc + (item.precioUnitario * item.cantidad), 0);
 
     if (cargando) return <p style={{ textAlign: 'center', color: '#00d4ff' }}>Cargando carrito...</p>;
+
+    if (mostrarExito) {
+        return (
+            <div style={{ textAlign: 'center', padding: '100px 20px', color: 'white' }}>
+                <h1 style={{ fontSize: '5rem', marginBottom: '20px' }}>🎂</h1>
+                <h2 style={{ color: '#00d4ff', fontSize: '2.5rem', textTransform: 'uppercase' }}>¡Pedido en Horno!</h2>
+                <p style={{ fontSize: '1.2rem', color: '#888', marginBottom: '40px', maxWidth: '500px', margin: '0 auto 40px' }}>
+                    Tu pago fue procesado con éxito. Ya puedes ver el estado de tu torta en la sección de seguimiento.
+                </p>
+                <button
+                    onClick={() => onCambiarSeccion('pedidos')}
+                    style={{
+                        padding: '18px 50px',
+                        backgroundColor: '#00d4ff',
+                        color: 'black',
+                        border: 'none',
+                        borderRadius: '10px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        fontSize: '1.1rem',
+                        boxShadow: '0 0 20px rgba(0,212,255,0.4)'
+                    }}
+                >
+                    IR A MIS PEDIDOS
+                </button>
+            </div>
+        );
+    }
 
     if (esperandoPago) {
         return (
@@ -91,9 +135,21 @@ const Carrito = ({ usuarioId }) => {
                 <p style={{ color: '#888' }}>Cuando termines de pagar, vuelve aquí y presiona el botón para vaciar tu carrito.</p>
                 <button
                     onClick={confirmarPagoManual}
-                    style={{ marginTop: '30px', padding: '15px 40px', backgroundColor: '#44ff44', color: 'black', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '1.2rem' }}
+                    disabled={procesando}
+                    style={{
+                        marginTop: '30px',
+                        padding: '15px 40px',
+                        backgroundColor: procesando ? '#228822' : '#44ff44',
+                        color: 'black',
+                        border: 'none',
+                        borderRadius: '10px',
+                        fontWeight: 'bold',
+                        cursor: procesando ? 'not-allowed' : 'pointer',
+                        fontSize: '1.2rem',
+                        opacity: procesando ? 0.7 : 1
+                    }}
                 >
-                    ✅ YA PAGUÉ, LIMPIAR MI CARRITO
+                    {procesando ? '⏳ PROCESANDO PEDIDO...' : '✅ YA PAGUÉ, LIMPIAR MI CARRITO'}
                 </button>
             </div>
         );

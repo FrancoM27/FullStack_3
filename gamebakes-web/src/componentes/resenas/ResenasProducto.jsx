@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { getAuthData } from '../autenticacion/authUtils';
 
-export default function ResenasProducto({ rol, usuarioId }) {
+export default function ResenasProducto({ rol, usuarioId, productoId, vendedorId, haComprado }) {
     const [resenas, setResenas] = useState([]);
     const [comentario, setComentario] = useState("");
     const [estrellas, setEstrellas] = useState(5);
     const [respuestaVendedor, setRespuestaVendedor] = useState({});
-    const [cargando, setCargando] = useState(true);
+    const [cargando, setCargando] = useState(false);
 
     const colorCian = '#00d4ff';
     const colorMorado = '#9b59b6';
@@ -15,9 +16,9 @@ export default function ResenasProducto({ rol, usuarioId }) {
         setCargando(true);
         try {
             const token = sessionStorage.getItem('token');
-            const url = rol === 'vendedor'
-                ? `http://localhost:8081/api/resenas/vendedor/${usuarioId}`
-                : `http://localhost:8081/api/resenas/producto/1`;
+            const url = rol === 'vendedor' && !productoId
+                ? `http://localhost:9000/api/resenas/vendedor/${usuarioId}`
+                : `http://localhost:9000/api/resenas/producto/${productoId}`;
 
             const response = await fetch(url, {
                 headers: {
@@ -37,26 +38,29 @@ export default function ResenasProducto({ rol, usuarioId }) {
     };
 
     useEffect(() => {
-        if (usuarioId) {
+        if (usuarioId && (rol === 'vendedor' || productoId)) {
             cargarResenas();
         }
-    }, [rol, usuarioId]);
+    }, [rol, usuarioId, productoId]);
 
     const enviarResena = async () => {
         if (!comentario.trim()) return;
 
         const token = sessionStorage.getItem('token');
+        const auth = getAuthData();
+        const nombreReal = auth && auth.nombre ? auth.nombre : 'Cliente';
+
         const nueva = {
-            productoId: 1,
+            productoId: productoId,
             clienteId: usuarioId,
-            clienteNombre: "Usuario " + usuarioId,
+            clienteNombre: nombreReal,
             comentario: comentario,
             estrellas: estrellas,
-            vendedorId: 2
+            vendedorId: vendedorId
         };
 
         try {
-            const response = await fetch('http://localhost:8081/api/resenas', {
+            const response = await fetch('http://localhost:9000/api/resenas', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -66,6 +70,7 @@ export default function ResenasProducto({ rol, usuarioId }) {
             });
             if (response.ok) {
                 setComentario("");
+                setEstrellas(5);
                 cargarResenas();
             }
         } catch (error) {
@@ -79,7 +84,7 @@ export default function ResenasProducto({ rol, usuarioId }) {
 
         const token = sessionStorage.getItem('token');
         try {
-            const response = await fetch(`http://localhost:8081/api/resenas/${resenaId}/responder`, {
+            const response = await fetch(`http://localhost:9000/api/resenas/${resenaId}/responder`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -89,6 +94,7 @@ export default function ResenasProducto({ rol, usuarioId }) {
             });
 
             if (response.ok) {
+                setRespuestaVendedor({...respuestaVendedor, [resenaId]: ""});
                 cargarResenas();
             }
         } catch (error) {
@@ -98,13 +104,24 @@ export default function ResenasProducto({ rol, usuarioId }) {
 
     if (cargando) return <div style={{ color: colorTema, padding: '20px' }}>Cargando información...</div>;
 
+    if (rol === 'cliente' && !productoId) {
+        return (
+            <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '40px', borderRadius: '15px', border: `1px solid ${colorTema}`, color: 'white', textAlign: 'center', marginTop: '30px' }}>
+                <h2 style={{ color: colorTema, marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '2px' }}>⭐ SECCIÓN DE RESEÑAS</h2>
+                <p style={{ fontSize: '1.2rem', color: '#ccc', maxWidth: '600px', margin: '0 auto' }}>
+                    Para leer o escribir el testimonio de una batalla ganada, dirígete al <strong>Catálogo</strong> y selecciona el manjar que ya has probado.
+                </p>
+            </div>
+        );
+    }
+
     return (
-        <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '25px', borderRadius: '15px', border: `1px solid ${colorTema}`, color: 'white' }}>
+        <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '25px', borderRadius: '15px', border: `1px solid ${colorTema}`, color: 'white', marginTop: '30px' }}>
             <h3 style={{ color: colorTema, textTransform: 'uppercase' }}>
-                ⭐ {rol === 'vendedor' ? 'Gestión de Reseñas' : 'Opiniones del Producto'}
+                ⭐ {rol === 'vendedor' && !productoId ? 'Gestión de Reseñas' : 'Opiniones del Producto'}
             </h3>
 
-            {rol === 'cliente' && (
+            {rol === 'cliente' && haComprado && (
                 <div style={{ marginBottom: '30px', borderBottom: '1px solid #333', paddingBottom: '20px' }}>
                     <p>Califica tu experiencia:</p>
                     <div style={{ marginBottom: '10px' }}>
@@ -121,6 +138,12 @@ export default function ResenasProducto({ rol, usuarioId }) {
                     <button onClick={enviarResena} style={{ width: '100%', marginTop: '10px', backgroundColor: colorCian, border: 'none', padding: '12px', fontWeight: 'bold', cursor: 'pointer', borderRadius: '8px', color: 'black' }}>
                         ENVIAR COMENTARIO
                     </button>
+                </div>
+            )}
+
+            {rol === 'cliente' && !haComprado && productoId && (
+                <div style={{ padding: '15px', backgroundColor: '#1a1a1a', borderRadius: '8px', marginBottom: '20px', border: '1px dashed #444', textAlign: 'center' }}>
+                    <p style={{ color: '#888', margin: 0 }}>Solo los guerreros que han adquirido este producto pueden dejar su testimonio.</p>
                 </div>
             )}
 
@@ -144,6 +167,7 @@ export default function ResenasProducto({ rol, usuarioId }) {
                                 <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
                                     <input
                                         type="text"
+                                        value={respuestaVendedor[r.id] || ""}
                                         placeholder="Escribe una respuesta..."
                                         onChange={(e) => setRespuestaVendedor({...respuestaVendedor, [r.id]: e.target.value})}
                                         style={{ flexGrow: 1, padding: '8px', borderRadius: '5px', border: `1px solid ${colorMorado}`, backgroundColor: '#000', color: 'white' }}

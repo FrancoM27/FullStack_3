@@ -26,9 +26,11 @@ public class PagoController {
 
     @PostMapping("/confirmar/{idPago}")
     public ResponseEntity<Pago> confirmar(@PathVariable Long idPago,
-                                          @RequestHeader("X-User-Id") String usuarioIdStr) {
+                                          @RequestHeader("X-User-Id") String usuarioIdStr,
+                                          @RequestHeader("Authorization") String token,
+                                          @RequestHeader("X-User-Name") String nombreUsuario) {
         Long usuarioId = Long.parseLong(usuarioIdStr);
-        return ResponseEntity.ok(pagoService.confirmarPago(idPago, usuarioId));
+        return ResponseEntity.ok(pagoService.confirmarPago(idPago, usuarioId, token, nombreUsuario));
     }
 
     @GetMapping("/historial")

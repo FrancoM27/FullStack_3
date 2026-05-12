@@ -16,4 +16,5 @@ public class Pedido {
     private String productoNombre;
     private Long vendedorId; //ID del vendedor que debe preparar el pedido
     private String estado; //PENDIENTE, PREPARACION, EN_CAMINO, ENTREGADO
+    private Integer cantidad;
 }

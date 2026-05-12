@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import ResenasProducto from '../resenas/ResenasProducto';
+import { getAuthData } from '../autenticacion/authUtils';
 
 const DetalleCatalogo = ({ productoId, alVolver, rol, usuarioId }) => {
     const [producto, setProducto] = useState(null);
@@ -7,11 +9,15 @@ const DetalleCatalogo = ({ productoId, alVolver, rol, usuarioId }) => {
     const [cantidad, setCantidad] = useState(1);
     const [esperandoPago, setEsperandoPago] = useState(false);
     const [idPagoGenerado, setIdPagoGenerado] = useState(null);
+    const [haComprado, setHaComprado] = useState(false);
 
     const token = sessionStorage.getItem('token');
 
     useEffect(() => {
         obtenerDetalle();
+        if (token && rol === 'cliente') {
+            verificarCompra();
+        }
     }, [productoId]);
 
     const obtenerDetalle = async () => {
@@ -26,6 +32,19 @@ const DetalleCatalogo = ({ productoId, alVolver, rol, usuarioId }) => {
         } finally {
             setCargando(false);
         }
+    };
+
+    const verificarCompra = async () => {
+        try {
+            const response = await fetch(`http://localhost:9000/api/pedidos/mis-pedidos`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const pedidos = await response.json();
+                const comprado = pedidos.some(p => p.productoId === productoId);
+                setHaComprado(comprado);
+            }
+        } catch (err) {}
     };
 
     const handleAgregarCarrito = async () => {
@@ -91,9 +110,16 @@ const DetalleCatalogo = ({ productoId, alVolver, rol, usuarioId }) => {
 
     const confirmarPagoManual = async () => {
         try {
+            const auth = getAuthData();
+            const nombreReal = auth && auth.nombre ? auth.nombre : 'Cliente';
+
             const response = await fetch(`http://localhost:9000/api/pagos/confirmar/${idPagoGenerado}`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'X-User-Id': String(usuarioId),
+                    'X-User-Name': nombreReal
+                }
             });
             if (response.ok) {
                 alert("Pago confirmado");
@@ -109,49 +135,59 @@ const DetalleCatalogo = ({ productoId, alVolver, rol, usuarioId }) => {
     if (!producto) return null;
 
     return (
-        <div style={{ maxWidth: '900px', margin: '0 auto', backgroundColor: '#111', padding: '30px', borderRadius: '15px', border: '1px solid #333' }}>
-            <button onClick={alVolver} style={{ padding: '8px 15px', backgroundColor: 'transparent', color: '#00d4ff', border: '1px solid #00d4ff', borderRadius: '8px', cursor: 'pointer', marginBottom: '20px' }}>
-                ⬅️ VOLVER
-            </button>
+        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+            <div style={{ backgroundColor: '#111', padding: '30px', borderRadius: '15px', border: '1px solid #333' }}>
+                <button onClick={alVolver} style={{ padding: '8px 15px', backgroundColor: 'transparent', color: '#00d4ff', border: '1px solid #00d4ff', borderRadius: '8px', cursor: 'pointer', marginBottom: '20px' }}>
+                    ⬅️ VOLVER
+                </button>
 
-            <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap' }}>
-                <div style={{ flex: '1 1 300px' }}>
-                    <img src={producto.imagenUrl || 'https://via.placeholder.com/400x400'} alt={producto.nombre} style={{ width: '100%', borderRadius: '10px', border: '1px solid #222' }} />
-                </div>
+                <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: '1 1 300px' }}>
+                        <img src={producto.imagenUrl || 'https://via.placeholder.com/400x400'} alt={producto.nombre} style={{ width: '100%', borderRadius: '10px', border: '1px solid #222' }} />
+                    </div>
 
-                <div style={{ flex: '1 1 400px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <span style={{ color: '#888', textTransform: 'uppercase', fontSize: '0.8rem' }}>{producto.categoria}</span>
-                    <h2 style={{ color: '#00d4ff', margin: '10px 0', fontSize: '2rem' }}>{producto.nombre}</h2>
-                    <p style={{ color: '#ccc', marginBottom: '20px' }}>{producto.descripcion}</p>
-                    <h3 style={{ color: 'white', fontSize: '1.8rem', margin: '0 0 20px 0' }}>${producto.precio?.toLocaleString()}</h3>
+                    <div style={{ flex: '1 1 400px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <span style={{ color: '#888', textTransform: 'uppercase', fontSize: '0.8rem' }}>{producto.categoria}</span>
+                        <h2 style={{ color: '#00d4ff', margin: '10px 0', fontSize: '2rem' }}>{producto.nombre}</h2>
+                        <p style={{ color: '#ccc', marginBottom: '20px' }}>{producto.descripcion}</p>
+                        <h3 style={{ color: 'white', fontSize: '1.8rem', margin: '0 0 20px 0' }}>${producto.precio?.toLocaleString()}</h3>
 
-                    {!esperandoPago ? (
-                        <>
-                            <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '20px' }}>
-                                <label style={{ color: '#888' }}>Cantidad:</label>
-                                <input type="number" min="1" max={producto.stock} value={cantidad} onChange={(e) => setCantidad(Number(e.target.value))} style={{ padding: '10px', width: '70px', backgroundColor: '#050505', color: 'white', border: '1px solid #333', borderRadius: '8px' }} />
-                                <span style={{ color: producto.stock < 5 ? '#ff4444' : '#44ff44', fontSize: '0.8rem' }}>Stock: {producto.stock}</span>
-                            </div>
+                        {!esperandoPago ? (
+                            <>
+                                <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '20px' }}>
+                                    <label style={{ color: '#888' }}>Cantidad:</label>
+                                    <input type="number" min="1" max={producto.stock} value={cantidad} onChange={(e) => setCantidad(Number(e.target.value))} style={{ padding: '10px', width: '70px', backgroundColor: '#050505', color: 'white', border: '1px solid #333', borderRadius: '8px' }} />
+                                    <span style={{ color: producto.stock < 5 ? '#ff4444' : '#44ff44', fontSize: '0.8rem' }}>Stock: {producto.stock}</span>
+                                </div>
 
-                            <div style={{ display: 'flex', gap: '15px' }}>
-                                <button onClick={handleAgregarCarrito} style={{ flex: 1, padding: '15px', backgroundColor: 'transparent', color: '#00d4ff', border: '1px solid #00d4ff', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
-                                    🛒 AL CARRITO
+                                <div style={{ display: 'flex', gap: '15px' }}>
+                                    <button onClick={handleAgregarCarrito} style={{ flex: 1, padding: '15px', backgroundColor: 'transparent', color: '#00d4ff', border: '1px solid #00d4ff', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
+                                        🛒 AL CARRITO
+                                    </button>
+                                    <button onClick={handleComprarAhora} style={{ flex: 1, padding: '15px', backgroundColor: '#44ff44', color: 'black', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
+                                        💸 COMPRAR AHORA
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <div style={{ padding: '20px', border: '1px dashed #44ff44', borderRadius: '10px', textAlign: 'center' }}>
+                                <p style={{ color: '#44ff44', fontWeight: 'bold' }}>PAGO ABIERTO</p>
+                                <button onClick={confirmarPagoManual} style={{ width: '100%', marginTop: '10px', padding: '12px', backgroundColor: '#44ff44', color: 'black', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
+                                    ✅ YA PAGUÉ
                                 </button>
-                                <button onClick={handleComprarAhora} style={{ flex: 1, padding: '15px', backgroundColor: '#44ff44', color: 'black', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
-                                    💸 COMPRAR AHORA
-                                </button>
                             </div>
-                        </>
-                    ) : (
-                        <div style={{ padding: '20px', border: '1px dashed #44ff44', borderRadius: '10px', textAlign: 'center' }}>
-                            <p style={{ color: '#44ff44', fontWeight: 'bold' }}>PAGO ABIERTO</p>
-                            <button onClick={confirmarPagoManual} style={{ width: '100%', marginTop: '10px', padding: '12px', backgroundColor: '#44ff44', color: 'black', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
-                                ✅ YA PAGUÉ
-                            </button>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
+
+            <ResenasProducto
+                rol={rol}
+                usuarioId={usuarioId}
+                productoId={producto.id}
+                vendedorId={producto.vendedorId}
+                haComprado={haComprado}
+            />
         </div>
     );
 };

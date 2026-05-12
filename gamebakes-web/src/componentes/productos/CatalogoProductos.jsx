@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import DetalleProducto from './DetalleProducto';
 import { getAuthData } from '../autenticacion/authUtils';
 
 const CatalogoProductos = ({onVerDetalle}) => {
@@ -8,11 +7,8 @@ const CatalogoProductos = ({onVerDetalle}) => {
     const [error, setError] = useState(null);
     const [filtroCategoria, setFiltroCategoria] = useState('Todos');
     const [categorias, setCategorias] = useState([]);
-    const [productoSeleccionado, setProductoSeleccionado] = useState(null);
-    const [mensajePedido, setMensajePedido] = useState('');
 
     const auth = getAuthData();
-    const esCliente = auth?.rol === 'cliente';
 
     useEffect(() => {
         traerProductosActivos();
@@ -40,82 +36,14 @@ const CatalogoProductos = ({onVerDetalle}) => {
         ? productos
         : productos.filter(p => p.categoria === filtroCategoria);
 
-    const abrirDetalle = (producto) => {
-        setProductoSeleccionado(producto);
-        setMensajePedido('');
-    };
-
-    const cerrarDetalle = () => {
-        setProductoSeleccionado(null);
-        setMensajePedido('');
-    };
-
-    const realizarPedido = async (producto) => {
-        if (!auth?.id) {
-            setMensajePedido('Debes iniciar sesión para realizar un pedido.');
-            return;
-        }
-
-        try {
-            setMensajePedido('Procesando pedido...');
-            const token = sessionStorage.getItem('token');
-            const pedidoBody = {
-                clienteId: auth.id,
-                clienteNombre: auth.nombre,
-                productoId: producto.id,
-                productoNombre: producto.nombre,
-                vendedorId: producto.vendedorId
-            };
-
-            const response = await fetch('http://localhost:8082/api/pedidos', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(pedidoBody)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'No se pudo crear el pedido');
-            }
-
-            const data = await response.json();
-            setMensajePedido(`Pedido creado con éxito. ID: ${data.id}`);
-        } catch (err) {
-            console.error('Error al crear pedido:', err);
-            setMensajePedido('No se pudo realizar el pedido. Intenta de nuevo.');
-        }
-    };
-
-    if (cargando) return <p style={{ color: '#888' }}>Cargando catálogo...</p>;
-    if (error) return <p style={{ color: '#ff4444' }}>{error}</p>;
-
-    if (productoSeleccionado) {
-        return (
-            <div>
-                <DetalleProducto
-                    producto={productoSeleccionado}
-                    alCerrar={cerrarDetalle}
-                    alPedir={esCliente ? realizarPedido : undefined}
-                    esCliente={esCliente}
-                />
-
-                {mensajePedido && (
-                    <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#0d1a26', borderRadius: '12px', border: '1px solid #00d4ff', color: '#c8f2ff' }}>
-                        {mensajePedido}
-                    </div>
-                )}
-            </div>
-        );
-    }
+    if (cargando) return <p style={{ color: '#00d4ff', textAlign: 'center', marginTop: '20px' }}>Cargando catálogo gamer...</p>;
+    if (error) return <p style={{ color: '#ff4444', textAlign: 'center', marginTop: '20px' }}>{error}</p>;
 
     return (
         <div>
             <div style={{ marginBottom: '30px' }}>
-                <h2 style={{ color: '#00d4ff', marginBottom: '20px' }}>🍰 Catálogo de Productos</h2>
-                
+                <h2 style={{ color: '#00d4ff', marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '2px' }}>🍰 Catálogo de Productos</h2>
+
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px' }}>
                     {categorias.map(cat => (
                         <button
@@ -123,9 +51,9 @@ const CatalogoProductos = ({onVerDetalle}) => {
                             onClick={() => setFiltroCategoria(cat)}
                             style={{
                                 padding: '10px 20px',
-                                backgroundColor: filtroCategoria === cat ? '#00d4ff' : 'rgba(0,212,255,0.2)',
+                                backgroundColor: filtroCategoria === cat ? '#00d4ff' : 'rgba(0,212,255,0.1)',
                                 color: filtroCategoria === cat ? 'black' : '#00d4ff',
-                                border: '1px solid #00d4ff',
+                                border: `1px solid ${colorCian}`,
                                 borderRadius: '20px',
                                 cursor: 'pointer',
                                 fontWeight: 'bold',
@@ -140,27 +68,28 @@ const CatalogoProductos = ({onVerDetalle}) => {
 
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-                gap: '20px'
+                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                gap: '25px'
             }}>
                 {productosFiltrados.map(producto => (
                     <div
                         key={producto.id}
                         style={{
-                            backgroundColor: 'rgba(0,212,255,0.05)',
-                            border: '1px solid rgba(0,212,255,0.3)',
-                            borderRadius: '10px',
+                            backgroundColor: '#111',
+                            border: '1px solid #333',
+                            borderRadius: '15px',
                             overflow: 'hidden',
-                            transition: 'transform 0.3s, box-shadow 0.3s',
-                            cursor: 'pointer'
+                            transition: '0.3s',
+                            cursor: 'pointer',
+                            position: 'relative'
                         }}
-                        onClick={() => abrirDetalle(producto)}
+                        onClick={() => onVerDetalle(producto.id)} // AHORA LA TARJETA USA LA MISMA FUNCIÓN QUE EL BOTÓN
                         onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-5px)';
-                            e.currentTarget.style.boxShadow = '0 0 20px rgba(0,212,255,0.5)';
+                            e.currentTarget.style.borderColor = '#00d4ff';
+                            e.currentTarget.style.boxShadow = '0 0 15px rgba(0,212,255,0.3)';
                         }}
                         onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.borderColor = '#333';
                             e.currentTarget.style.boxShadow = 'none';
                         }}
                     >
@@ -170,66 +99,63 @@ const CatalogoProductos = ({onVerDetalle}) => {
                                 alt={producto.nombre}
                                 style={{
                                     width: '100%',
-                                    height: '200px',
-                                    objectFit: 'cover',
-                                    backgroundColor: '#1a1a1a'
+                                    height: '220px',
+                                    objectFit: 'cover'
                                 }}
                             />
                         )}
-                        <div style={{ padding: '15px' }}>
-                            <h3 style={{ margin: '0 0 10px 0', color: '#00d4ff', fontSize: '1.1rem' }}>
+                        <div style={{ padding: '20px' }}>
+                            <span style={{ color: '#888', fontSize: '0.7rem', textTransform: 'uppercase' }}>{producto.categoria}</span>
+                            <h3 style={{ margin: '5px 0 15px 0', color: 'white', fontSize: '1.2rem' }}>
                                 {producto.nombre}
                             </h3>
-                            {producto.categoria && (
-                                <p style={{ margin: '5px 0', color: '#888', fontSize: '0.85rem' }}>
-                                    📂 {producto.categoria}
-                                </p>
-                            )}
-                            <p style={{ margin: '10px 0', color: '#aaa', fontSize: '0.9rem', minHeight: '40px' }}>
-                                {producto.descripcion || 'Sin descripción'}
-                            </p>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px' }}>
-                                <span style={{ color: '#00d4ff', fontSize: '1.2rem', fontWeight: 'bold' }}>
-                                    ${producto.precio}
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ color: '#00d4ff', fontSize: '1.4rem', fontWeight: 'bold' }}>
+                                    ${producto.precio?.toLocaleString()}
                                 </span>
-                                <span style={{ color: '#888', fontSize: '0.9rem' }}>
-                                    Stock: {producto.stock}
-                                </span>
+                                <div style={{ textAlign: 'right' }}>
+                                    <p style={{ margin: 0, color: '#666', fontSize: '0.7rem' }}>STOCK DISPONIBLE</p>
+                                    <span style={{ color: producto.stock > 0 ? '#44ff44' : '#ff4444', fontWeight: 'bold' }}>
+                                        {producto.stock} uds.
+                                    </span>
+                                </div>
                             </div>
 
                             <button
-                                onClick={() => onVerDetalle(producto.id)}
+                                onClick={(e) => {
+                                    e.stopPropagation(); // Evita el doble click
+                                    onVerDetalle(producto.id);
+                                }}
                                 style={{
                                     width: '100%',
-                                    marginTop: '15px',
-                                    padding: '10px',
-                                    backgroundColor: 'transparent',
-                                    color: '#00d4ff',
-                                    border: '1px solid #00d4ff',
-                                    borderRadius: '5px',
+                                    marginTop: '20px',
+                                    padding: '12px',
+                                    backgroundColor: '#00d4ff',
+                                    color: 'black',
+                                    border: 'none',
+                                    borderRadius: '8px',
                                     cursor: 'pointer',
                                     fontWeight: 'bold',
-                                    textTransform: 'uppercase',
-                                    transition: '0.3s'
+                                    textTransform: 'uppercase'
                                 }}
-                                onMouseEnter={(e) => { e.target.style.backgroundColor = 'rgba(0,212,255,0.1)' }}
-                                onMouseLeave={(e) => { e.target.style.backgroundColor = 'transparent' }}
                             >
                                 Ver Producto
                             </button>
-
                         </div>
                     </div>
                 ))}
             </div>
 
             {productosFiltrados.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>
-                    <p>No hay productos disponibles en esta categoría.</p>
+                <div style={{ textAlign: 'center', padding: '100px', color: '#444' }}>
+                    <p>No hay productos en esta categoría, jefe.</p>
                 </div>
             )}
         </div>
     );
 };
+
+const colorCian = '#00d4ff';
 
 export default CatalogoProductos;

@@ -7,16 +7,18 @@ import com.example.serviciopagos.Repository.PagoRepository;
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.preference.*;
 import com.mercadopago.resources.preference.Preference;
-import com.mercadopago.exceptions.MPApiException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class PagoService {
@@ -31,7 +33,6 @@ public class PagoService {
 
     public Pago iniciarPagoMP(SolicitudPagoDTO solicitud) {
         Pago pago = new Pago();
-        pago.setPedidoId(solicitud.getPedidoId());
         pago.setProductoId(solicitud.getProductoId());
         pago.setCantidad(solicitud.getCantidad());
         pago.setClienteId(solicitud.getClienteId());
@@ -110,12 +111,17 @@ public class PagoService {
         }
     }
 
-    public Pago confirmarPago(Long idPago, Long usuarioAutenticadoId) {
-        Pago pago = pagoRepository.findById(idPago)
-                .orElseThrow(() -> new RuntimeException("Pago no encontrado"));
+    @Transactional
+    public Pago confirmarPago(Long idPago, Long usuarioAutenticadoId, String token, String nombreUsuario) {
+        Pago pago = pagoRepository.findById(idPago).orElseThrow();
 
         if (!pago.getClienteId().equals(usuarioAutenticadoId)) {
             throw new RuntimeException("No autorizado");
+        }
+
+        if ("APROBADO".equals(pago.getEstado())) {
+            carritoService.limpiarCarrito(pago.getClienteId());
+            return pago;
         }
 
         pago.setEstado("APROBADO");
@@ -123,25 +129,58 @@ public class PagoService {
         pago = pagoRepository.save(pago);
 
         try {
-            RestTemplate restTemplate = new RestTemplate();
-
             if (pago.getProductoId() != null) {
-                String url = "http://localhost:8085/api/productos/" + pago.getProductoId() + "/restar-stock?cantidad=" + pago.getCantidad();
-                restTemplate.put(url, null);
+                try {
+                    restarStock(pago.getProductoId(), pago.getCantidad(), token);
+                    crearPedidoEnServicio(pago.getProductoId(), pago.getClienteId(), pago.getCantidad(), token, nombreUsuario);
+                } catch (Exception ex) {}
             } else {
                 List<CarritoItem> items = carritoService.listarPorCliente(pago.getClienteId());
                 for (CarritoItem item : items) {
-                    String url = "http://localhost:8085/api/productos/" + item.getProductoId() + "/restar-stock?cantidad=" + item.getCantidad();
-                    restTemplate.put(url, null);
+                    try {
+                        restarStock(item.getProductoId(), item.getCantidad(), token);
+                        crearPedidoEnServicio(item.getProductoId(), pago.getClienteId(), item.getCantidad(), token, nombreUsuario);
+                    } catch (Exception ex) {}
                 }
             }
-
+        } finally {
             carritoService.limpiarCarrito(pago.getClienteId());
-        } catch (Exception e) {
-            System.err.println("Error en post-pago: " + e.getMessage());
         }
-
         return pago;
+    }
+
+    private void restarStock(Long productoId, Integer cantidad, String token) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "http://localhost:8085/api/productos/" + productoId + "/restar-stock?cantidad=" + cantidad;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", token);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
+    }
+
+    private void crearPedidoEnServicio(Long productoId, Long clienteId, Integer cantidad, String token, String nombreUsuario) {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", token);
+        headers.set("X-User-Id", clienteId.toString());
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> getEntity = new HttpEntity<>(headers);
+        var productoData = restTemplate.exchange("http://localhost:8085/api/productos/" + productoId, HttpMethod.GET, getEntity, Map.class).getBody();
+
+        if (productoData != null) {
+            Map<String, Object> pedidoRequest = new HashMap<>();
+            pedidoRequest.put("clienteId", clienteId);
+            pedidoRequest.put("clienteNombre", nombreUsuario);
+            pedidoRequest.put("productoId", productoId);
+            pedidoRequest.put("productoNombre", productoData.get("nombre"));
+            pedidoRequest.put("vendedorId", productoData.get("vendedorId"));
+            pedidoRequest.put("cantidad", cantidad);
+            pedidoRequest.put("estado", "PENDIENTE");
+
+            HttpEntity<Map<String, Object>> postEntity = new HttpEntity<>(pedidoRequest, headers);
+            restTemplate.postForObject("http://localhost:8082/api/pedidos", postEntity, String.class);
+        }
     }
 
     public List<Pago> obtenerHistorialPorCliente(Long clienteId) {

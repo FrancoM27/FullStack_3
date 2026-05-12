@@ -7,8 +7,9 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="api-gateway" />
+        <module name="servicio-resenas" />
       </profile>
-      <profile name="Annotation profile for servicio-usuarios" enabled="true">
+      <profile name="Annotation profile for servicio-resenas" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -18,7 +19,6 @@
         <module name="servicio-perfil" />
         <module name="servicio-pedidos" />
         <module name="servicio-pagos" />
-        <module name="servicio-resenas" />
         <module name="servicio-catalogo" />
         <module name="servicio-productos" />
         <module name="servicio-usuarios" />

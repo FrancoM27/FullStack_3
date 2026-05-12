@@ -17,9 +17,9 @@ function App() {
     const [usuario, setUsuario] = useState(() => {
         const auth = getAuthData();
         if (auth) {
-            return { loggedIn: true, rol: auth.rol, id: auth.id };
+            return { loggedIn: true, rol: auth.rol || 'cliente', id: auth.id || null, nombre: auth.nombre || '' };
         }
-        return { loggedIn: false, rol: 'cliente', id: null };
+        return { loggedIn: false, rol: 'cliente', id: null, nombre: '' };
     });
 
     const [vistaRecuperacion, setVistaRecuperacion] = useState(false);
@@ -39,8 +39,8 @@ function App() {
     });
 
     const manejarCambioSeccion = (id) => {
-        setSeccionActiva(id);
-        sessionStorage.setItem('seccion', id);
+        setSeccionActiva(id || 'inicio');
+        sessionStorage.setItem('seccion', id || 'inicio');
         setProductoSeleccionado(null);
     };
 
@@ -52,7 +52,7 @@ function App() {
 
     const cerrarSesion = () => {
         sessionStorage.clear();
-        setUsuario({ loggedIn: false, rol: 'cliente', id: null });
+        setUsuario({ loggedIn: false, rol: 'cliente', id: null, nombre: '' });
         setSeccionActiva('inicio');
         setMostrarRegistro(false);
         setVistaRecuperacion(false);
@@ -81,7 +81,12 @@ function App() {
             : <Login
                 onLoginSuccess={() => {
                     const auth = getAuthData();
-                    setUsuario({ loggedIn: true, rol: auth.rol, id: auth.id });
+                    setUsuario({
+                        loggedIn: true,
+                        rol: auth?.rol || 'cliente',
+                        id: auth?.id || null,
+                        nombre: auth?.nombre || ''
+                    });
                     sessionStorage.removeItem('view');
                 }}
                 alCambiarARegistro={() => manejarCambioVista(true)}
@@ -110,6 +115,21 @@ function App() {
 
     const menuActual = usuario.rol === 'vendedor' ? menuVendedor : menuCliente;
 
+    const estiloTarjeta = {
+        backgroundColor: '#111',
+        border: `1px solid #333`,
+        borderBottom: `4px solid ${colorTema}`,
+        borderRadius: '15px',
+        padding: '30px',
+        textAlign: 'center',
+        cursor: 'pointer',
+        boxShadow: '0 4px 15px rgba(0,0,0,0.5)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center'
+    };
+
     return (
         <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#0a0a0a', color: 'white' }}>
 
@@ -130,7 +150,7 @@ function App() {
 
                 <div style={{ flexGrow: 1, overflowY: 'auto', marginBottom: '20px' }}>
                     <p style={{ color: colorTema, fontSize: '0.8rem', marginBottom: '20px', textAlign: 'center', letterSpacing: '1px' }}>
-                        MODO: {usuario.rol.toUpperCase()}
+                        MODO: {(usuario?.rol || 'cliente').toUpperCase()}
                     </p>
                     {menuActual.map(item => (
                         <button
@@ -165,12 +185,14 @@ function App() {
             <main style={{ flexGrow: 1, padding: '40px', marginLeft: '250px' }}>
                 <header style={{ marginBottom: '30px', borderBottom: '1px solid #333', paddingBottom: '10px' }}>
                     <h1 style={{ color: colorTema, margin: 0, textTransform: 'uppercase', letterSpacing: '2px' }}>
-                        {seccionActiva.replace('_', ' ')}
+                        {(seccionActiva || 'inicio').replace('_', ' ')}
                     </h1>
                 </header>
 
                 {seccionActiva === 'pedidos' && <SeguimientoPedidos rol={usuario.rol} usuarioId={usuario.id} />}
+                {seccionActiva === 'pedidos_gestion' && <SeguimientoPedidos rol={usuario.rol} usuarioId={usuario.id} />}
                 {seccionActiva === 'resenas' && <ResenasProducto rol={usuario.rol} usuarioId={usuario.id} />}
+                {seccionActiva === 'resenas_gestion' && <ResenasProducto rol={usuario.rol} usuarioId={usuario.id} />}
                 {seccionActiva === 'productos' && <GestionProductos vendedorId={usuario.id}/>}
 
                 {seccionActiva === 'catalogo' && !productoSeleccionado && (
@@ -187,13 +209,72 @@ function App() {
                 )}
 
                 {seccionActiva === 'carrito' && (
-                    <Carrito usuarioId={usuario.id} />
+                    <Carrito
+                        usuarioId={usuario.id}
+                        onCambiarSeccion={manejarCambioSeccion}
+                    />
                 )}
 
                 {seccionActiva === 'inicio' && (
-                    <div style={{ textAlign: 'center', marginTop: '50px' }}>
-                        <h2 style={{ color: 'white' }}>¡Bienvenido Guerrero!</h2>
-                        <p style={{ color: '#888' }}>Sesión activa: <strong>{usuario.rol}</strong>.</p>
+                    <div style={{ animation: 'fadeIn 0.5s' }}>
+                        <div style={{
+                            background: `linear-gradient(135deg, rgba(0,0,0,0.8), ${colorTema}33)`,
+                            padding: '60px 40px',
+                            borderRadius: '20px',
+                            border: `1px solid ${colorTema}`,
+                            textAlign: 'center',
+                            marginBottom: '40px',
+                            boxShadow: `0 10px 30px ${colorTema}22`
+                        }}>
+                            <h1 style={{ fontSize: '3.5rem', margin: '0 0 15px 0', textTransform: 'uppercase', textShadow: `0 0 15px ${colorTema}` }}>
+                                ¡SALUDOS, {usuario.nombre || 'GUERRERO'}!
+                            </h1>
+                            <p style={{ fontSize: '1.2rem', color: '#ccc', maxWidth: '700px', margin: '0 auto', lineHeight: '1.6' }}>
+                                {usuario.rol === 'vendedor'
+                                    ? 'Este es tu panel de control central. Revisa tus pedidos pendientes, gestiona tu armería de productos y domina el mercado.'
+                                    : 'Prepárate para subir de nivel con los mejores pasteles y dulces temáticos. ¿Qué aventura gastronómica elegiremos hoy?'}
+                            </p>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '25px' }}>
+                            {usuario.rol === 'cliente' ? (
+                                <>
+                                    <div onClick={() => manejarCambioSeccion('catalogo')} style={estiloTarjeta}>
+                                        <h2 style={{ fontSize: '3rem', margin: '0 0 15px 0' }}>🍰</h2>
+                                        <h3 style={{ margin: '0 0 10px 0', color: 'white' }}>Explorar Catálogo</h3>
+                                        <p style={{ color: '#888', fontSize: '0.9rem', margin: 0 }}>Descubre nuevas pociones y pasteles.</p>
+                                    </div>
+                                    <div onClick={() => manejarCambioSeccion('pedidos')} style={estiloTarjeta}>
+                                        <h2 style={{ fontSize: '3rem', margin: '0 0 15px 0' }}>📦</h2>
+                                        <h3 style={{ margin: '0 0 10px 0', color: 'white' }}>Mis Misiones</h3>
+                                        <p style={{ color: '#888', fontSize: '0.9rem', margin: 0 }}>Rastrea tus pedidos activos y entregados.</p>
+                                    </div>
+                                    <div onClick={() => manejarCambioSeccion('carrito')} style={estiloTarjeta}>
+                                        <h2 style={{ fontSize: '3rem', margin: '0 0 15px 0' }}>🛒</h2>
+                                        <h3 style={{ margin: '0 0 10px 0', color: 'white' }}>Inventario</h3>
+                                        <p style={{ color: '#888', fontSize: '0.9rem', margin: 0 }}>Revisa y paga los items de tu carrito.</p>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div onClick={() => manejarCambioSeccion('pedidos_gestion')} style={estiloTarjeta}>
+                                        <h2 style={{ fontSize: '3rem', margin: '0 0 15px 0' }}>📋</h2>
+                                        <h3 style={{ margin: '0 0 10px 0', color: 'white' }}>Órdenes Activas</h3>
+                                        <p style={{ color: '#888', fontSize: '0.9rem', margin: 0 }}>Gestiona y actualiza los pedidos.</p>
+                                    </div>
+                                    <div onClick={() => manejarCambioSeccion('productos')} style={estiloTarjeta}>
+                                        <h2 style={{ fontSize: '3rem', margin: '0 0 15px 0' }}>🧁</h2>
+                                        <h3 style={{ margin: '0 0 10px 0', color: 'white' }}>Mi Armería</h3>
+                                        <p style={{ color: '#888', fontSize: '0.9rem', margin: 0 }}>Añade o edita tu stock de productos.</p>
+                                    </div>
+                                    <div onClick={() => manejarCambioSeccion('resenas_gestion')} style={estiloTarjeta}>
+                                        <h2 style={{ fontSize: '3rem', margin: '0 0 15px 0' }}>💬</h2>
+                                        <h3 style={{ margin: '0 0 10px 0', color: 'white' }}>Feedback</h3>
+                                        <p style={{ color: '#888', fontSize: '0.9rem', margin: 0 }}>Responde las reseñas de los guerreros.</p>
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     </div>
                 )}
             </main>
