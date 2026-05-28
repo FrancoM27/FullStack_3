@@ -1,0 +1,189 @@
+package com.example.serviciopagos.Service;
+
+import com.example.serviciopagos.DTO.SolicitudPagoDTO;
+import com.example.serviciopagos.Model.Pago;
+import com.example.serviciopagos.Model.CarritoItem;
+import com.example.serviciopagos.Repository.PagoRepository;
+import com.mercadopago.MercadoPagoConfig;
+import com.mercadopago.client.preference.*;
+import com.mercadopago.resources.preference.Preference;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.*;
+
+@Service
+public class PagoService {
+
+    @Autowired
+    private PagoRepository pagoRepository;
+
+    @Autowired
+    private CarritoService carritoService;
+
+    private String accessToken = "APP_USR-6384651523153058-051023-18ce169c7c92f41fc1af6ae5d5ad9a39-3392426062";
+
+    public Pago iniciarPagoMP(SolicitudPagoDTO solicitud) {
+        Pago pago = new Pago();
+        pago.setProductoId(solicitud.getProductoId());
+        pago.setCantidad(solicitud.getCantidad());
+        pago.setClienteId(solicitud.getClienteId());
+        pago.setMonto(solicitud.getMonto());
+        pago.setMetodoPago("MERCADO_PAGO");
+        pago.setFechaPago(LocalDateTime.now());
+        pago.setEstado("PENDIENTE");
+        pago = pagoRepository.save(pago);
+
+        try {
+            MercadoPagoConfig.setAccessToken(accessToken);
+            PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
+                    .title("Compra Directa Gamebakes")
+                    .quantity(1)
+                    .unitPrice(new BigDecimal(solicitud.getMonto()))
+                    .build();
+            List<PreferenceItemRequest> items = new ArrayList<>();
+            items.add(itemRequest);
+            PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
+                    .success("http://localhost:5173/pago-exito")
+                    .build();
+            PreferenceRequest preferenceRequest = PreferenceRequest.builder()
+                    .items(items)
+                    .backUrls(backUrls)
+                    .externalReference(pago.getIdPago().toString())
+                    .build();
+            PreferenceClient client = new PreferenceClient();
+            Preference preference = client.create(preferenceRequest);
+            pago.setTransaccionId(preference.getInitPoint());
+            return pagoRepository.save(pago);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    public Pago iniciarPagoCarrito(Long clienteId) {
+        List<CarritoItem> itemsCarrito = carritoService.listarPorCliente(clienteId);
+        if (itemsCarrito.isEmpty()) throw new RuntimeException("Carrito vacío");
+
+        Double total = itemsCarrito.stream()
+                .mapToDouble(i -> i.getPrecioUnitario() * i.getCantidad())
+                .sum();
+
+        Pago pago = new Pago();
+        pago.setClienteId(clienteId);
+        pago.setMonto(total);
+        pago.setMetodoPago("MERCADO_PAGO");
+        pago.setFechaPago(LocalDateTime.now());
+        pago.setEstado("PENDIENTE");
+        pago = pagoRepository.save(pago);
+
+        try {
+            MercadoPagoConfig.setAccessToken(accessToken);
+            List<PreferenceItemRequest> itemsPreference = new ArrayList<>();
+            for (CarritoItem ci : itemsCarrito) {
+                itemsPreference.add(PreferenceItemRequest.builder()
+                        .title("Producto #" + ci.getProductoId())
+                        .quantity(ci.getCantidad())
+                        .unitPrice(new BigDecimal(ci.getPrecioUnitario()))
+                        .build());
+            }
+            PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
+                    .success("http://localhost:5173/pago-exito")
+                    .build();
+            PreferenceRequest preferenceRequest = PreferenceRequest.builder()
+                    .items(itemsPreference)
+                    .backUrls(backUrls)
+                    .externalReference(pago.getIdPago().toString())
+                    .build();
+            PreferenceClient client = new PreferenceClient();
+            Preference preference = client.create(preferenceRequest);
+            pago.setTransaccionId(preference.getInitPoint());
+            return pagoRepository.save(pago);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    @Transactional
+    public Pago confirmarPago(Long idPago, Long usuarioAutenticadoId, String token, String nombreUsuario) {
+        Pago pago = pagoRepository.findById(idPago).orElseThrow();
+
+        if (!pago.getClienteId().equals(usuarioAutenticadoId)) {
+            throw new RuntimeException("No autorizado");
+        }
+
+        if ("APROBADO".equals(pago.getEstado())) {
+            carritoService.limpiarCarrito(pago.getClienteId());
+            return pago;
+        }
+
+        pago.setEstado("APROBADO");
+        pago.setTransaccionId("MP-CONFIRM-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        pago = pagoRepository.save(pago);
+
+        try {
+            if (pago.getProductoId() != null) {
+                try {
+                    restarStock(pago.getProductoId(), pago.getCantidad(), token);
+                    crearPedidoEnServicio(pago.getProductoId(), pago.getClienteId(), pago.getCantidad(), token, nombreUsuario);
+                } catch (Exception ex) {}
+            } else {
+                List<CarritoItem> items = carritoService.listarPorCliente(pago.getClienteId());
+                for (CarritoItem item : items) {
+                    try {
+                        restarStock(item.getProductoId(), item.getCantidad(), token);
+                        crearPedidoEnServicio(item.getProductoId(), pago.getClienteId(), item.getCantidad(), token, nombreUsuario);
+                    } catch (Exception ex) {}
+                }
+            }
+        } finally {
+            carritoService.limpiarCarrito(pago.getClienteId());
+        }
+        return pago;
+    }
+
+    private void restarStock(Long productoId, Integer cantidad, String token) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "http://localhost:8085/api/productos/" + productoId + "/restar-stock?cantidad=" + cantidad;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", token);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
+    }
+
+    private void crearPedidoEnServicio(Long productoId, Long clienteId, Integer cantidad, String token, String nombreUsuario) {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", token);
+        headers.set("X-User-Id", clienteId.toString());
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> getEntity = new HttpEntity<>(headers);
+        var productoData = restTemplate.exchange("http://localhost:8085/api/productos/" + productoId, HttpMethod.GET, getEntity, Map.class).getBody();
+
+        if (productoData != null) {
+            Map<String, Object> pedidoRequest = new HashMap<>();
+            pedidoRequest.put("clienteId", clienteId);
+            pedidoRequest.put("clienteNombre", nombreUsuario);
+            pedidoRequest.put("productoId", productoId);
+            pedidoRequest.put("productoNombre", productoData.get("nombre"));
+            pedidoRequest.put("vendedorId", productoData.get("vendedorId"));
+            pedidoRequest.put("cantidad", cantidad);
+            pedidoRequest.put("estado", "PENDIENTE");
+
+            HttpEntity<Map<String, Object>> postEntity = new HttpEntity<>(pedidoRequest, headers);
+            restTemplate.postForObject("http://localhost:8082/api/pedidos", postEntity, String.class);
+        }
+    }
+
+    public List<Pago> obtenerHistorialPorCliente(Long clienteId) {
+        return pagoRepository.findByClienteId(clienteId);
+    }
+}
