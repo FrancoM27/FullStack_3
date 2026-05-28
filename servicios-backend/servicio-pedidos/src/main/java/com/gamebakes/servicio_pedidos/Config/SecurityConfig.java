@@ -28,7 +28,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(request -> {
                     var config = new CorsConfiguration();
-                    config.setAllowedOrigins(List.of("http://localhost:5173"));
+                    config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:8081"));
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                     config.setAllowedHeaders(List.of("*"));
                     config.setAllowCredentials(true);
@@ -36,7 +36,10 @@ public class SecurityConfig {
                 }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Todos los endpoints de pedidos requieren estar logueado
+                        // Permitir endpoints de validación para comunicación entre servicios
+                        .requestMatchers("/api/pedidos/validar-compra").permitAll()
+                        .requestMatchers("/api/pedidos/validar-entregado").permitAll()
+                        // Todos los demás endpoints de pedidos requieren estar logueado
                         .requestMatchers("/api/pedidos/**").authenticated()
                         .anyRequest().denyAll()
                 );

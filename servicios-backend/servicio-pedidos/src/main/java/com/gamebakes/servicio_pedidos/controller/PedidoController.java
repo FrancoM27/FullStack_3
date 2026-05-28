@@ -39,4 +39,18 @@ public class PedidoController {
     public Pedido actualizar(@PathVariable Long id, @RequestParam String nuevoEstado) {
         return pedidoService.actualizarEstado(id, nuevoEstado);
     }
+
+    @GetMapping("/validar-compra")
+    public boolean validarCompra(
+            @RequestParam("clienteId") Long clienteId,
+            @RequestParam("productoId") Long productoId) {
+        return pedidoService.validarCompra(clienteId, productoId);
+    }
+
+    @GetMapping("/validar-entregado")
+    public boolean validarEntregado(
+            @RequestParam("clienteId") Long clienteId,
+            @RequestParam("productoId") Long productoId) {
+        return pedidoService.validarEntregado(clienteId, productoId);
+    }
 }

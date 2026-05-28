@@ -42,6 +42,19 @@ public class ResenaController {
         return ResponseEntity.ok(resenas);
     }
 
+    //Listar por cliente (Protegido por Gateway)
+    @GetMapping("/cliente")
+    public ResponseEntity<List<Resena>> listarPorCliente(@RequestHeader(value = "X-User-Id", required = false) String userId) {
+        if (userId == null) {
+            System.out.println("Error: X-User-Id header is null");
+            return ResponseEntity.badRequest().build();
+        }
+        System.out.println("Obteniendo reseñas para cliente ID: " + userId);
+        List<Resena> resenas = resenaService.obtenerPorCliente(Long.parseLong(userId));
+        System.out.println("Reseñas encontradas: " + resenas.size());
+        return ResponseEntity.ok(resenas);
+    }
+
     //Responder reseña (Vendedor)
     @PutMapping("/{id}/responder")
     public ResponseEntity<Resena> responder(@PathVariable Long id, @RequestBody String respuesta) {

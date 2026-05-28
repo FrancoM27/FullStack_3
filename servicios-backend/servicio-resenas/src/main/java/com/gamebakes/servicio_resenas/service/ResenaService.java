@@ -1,10 +1,11 @@
 package com.gamebakes.servicio_resenas.service;
 
+import com.gamebakes.servicio_resenas.client.PedidoClient;
 import com.gamebakes.servicio_resenas.model.Resena;
 import com.gamebakes.servicio_resenas.repository.ResenaRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.kafka.core.KafkaTemplate; // Descomenta cuando agreguemos la dependencia
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.ArrayList;
@@ -15,8 +16,11 @@ public class ResenaService {
     @Autowired
     private ResenaRepository resenaRepository;
 
-    //@Autowired
-    //private KafkaTemplate<String, String> kafkaTemplate; 
+    @Autowired
+    private PedidoClient pedidoClient;
+
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
 
     //CLIENTE: Obtener reseñas por producto con Circuit Breaker
     @CircuitBreaker(name = "resenaCB", fallbackMethod = "fallbackResenas")
@@ -30,10 +34,46 @@ public class ResenaService {
         return resenaRepository.findByVendedorId(vendedorId);
     }
 
-    //Lógica para guardar reseña (Aquí activaremos Kafka después)
+    //CLIENTE: Obtener sus reseñas con Circuit Breaker
+    @CircuitBreaker(name = "resenaCB", fallbackMethod = "fallbackResenasCliente")
+    public List<Resena> obtenerPorCliente(Long clienteId) {
+        return resenaRepository.findByClienteId(clienteId);
+    }
+
+    //Lógica para guardar reseña con validación de compra, estado entregado y Kafka
     public Resena guardarResena(Resena resena) {
+        System.out.println("=== CREANDO RESEÑA ===");
+        System.out.println("Cliente ID: " + resena.getClienteId());
+        System.out.println("Producto ID: " + resena.getProductoId());
+        System.out.println("Vendedor ID: " + resena.getVendedorId());
+        System.out.println("Comentario: " + resena.getComentario());
+        System.out.println("Estrellas: " + resena.getEstrellas());
+
+        // Validar que el cliente compró el producto antes de permitir la reseña
+        boolean comprado = pedidoClient.validarCompra(resena.getClienteId(), resena.getProductoId());
+        System.out.println("Validación compra: " + comprado);
+        if (!comprado) {
+            throw new RuntimeException("El cliente no ha comprado este producto. No puede dejar una reseña.");
+        }
+
+        // Validar que el pedido esté entregado antes de permitir la reseña
+        boolean entregado = pedidoClient.validarEntregado(resena.getClienteId(), resena.getProductoId());
+        System.out.println("Validación entregado: " + entregado);
+        if (!entregado) {
+            throw new RuntimeException("El pedido aún no ha sido entregado. Solo puede reseñar productos entregados.");
+        }
+
         Resena nueva = resenaRepository.save(resena);
-        //kafkaTemplate.send("notificaciones-resenas", "Nueva reseña para el producto: " + resena.getProductoId());
+        System.out.println("Reseña guardada con ID: " + nueva.getId());
+
+        // Enviar notificación asíncrona a Kafka (temporalmente deshabilitado)
+        try {
+            kafkaTemplate.send("notificaciones-resenas", "Nueva reseña para el producto: " + resena.getProductoId());
+        } catch (Exception e) {
+            System.out.println("Error enviando a Kafka: " + e.getMessage());
+            // No fallar el proceso si Kafka no está disponible
+        }
+
         return nueva;
     }
 
@@ -53,6 +93,11 @@ public class ResenaService {
 
     public List<Resena> fallbackResenasVendedor(Long id, Throwable t) {
         System.out.println("Circuit Breaker: Error obteniendo reseñas del vendedor. Motivo: " + t.getMessage());
+        return new ArrayList<>();
+    }
+
+    public List<Resena> fallbackResenasCliente(Long id, Throwable t) {
+        System.out.println("Circuit Breaker: Error obteniendo reseñas del cliente. Motivo: " + t.getMessage());
         return new ArrayList<>();
     }
 }
