@@ -49,6 +49,40 @@ export default function Registro({ alVolverAlLogin }) {
             const data = await response.json().catch(() => null);
 
             if (response.ok) {
+                // Crear perfil automáticamente después del registro exitoso
+                try {
+                    const token = data.token || null;
+                    const usuarioId = data.id || data.usuarioId || null;
+                    
+                    if (usuarioId) {
+                        const perfilData = {
+                            usuarioId: usuarioId,
+                            username: form.username,
+                            email: form.email,
+                            rol: form.rol.toUpperCase(),
+                            nombreCompleto: form.nombreCompleto,
+                            telefono: '',
+                            direccion: ''
+                        };
+
+                        const perfilResponse = await fetch('http://localhost:9000/api/perfil', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                ...(token && { 'Authorization': `Bearer ${token}` })
+                            },
+                            body: JSON.stringify(perfilData)
+                        });
+
+                        if (!perfilResponse.ok) {
+                            console.warn('No se pudo crear el perfil automáticamente, pero el usuario fue registrado');
+                        }
+                    }
+                } catch (perfilError) {
+                    console.warn('Error al crear perfil automáticamente:', perfilError);
+                    // No bloquear el registro si falla la creación del perfil
+                }
+
                 alert(`🚀 ¡Cuenta creada! Ya puedes iniciar sesión.`);
                 alVolverAlLogin();
             } else {
