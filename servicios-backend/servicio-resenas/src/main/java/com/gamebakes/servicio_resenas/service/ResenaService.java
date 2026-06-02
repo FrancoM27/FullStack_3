@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.ArrayList;
 
+@SuppressWarnings("null")
 @Service
 public class ResenaService {
 

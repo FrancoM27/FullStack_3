@@ -10,6 +10,7 @@ import GestionProductos from './componentes/productos/GestionProductos'
 import CatalogoProductos from './componentes/productos/CatalogoProductos'
 import DetalleCatalogo from './componentes/productos/DetalleCatalogo'
 import Carrito from './componentes/productos/Carrito'
+import PerfilUsuario from './componentes/perfil/PerfilUsuario'
 
 import { getAuthData } from './componentes/autenticacion/authUtils'
 
@@ -103,14 +104,16 @@ function App() {
         { id: 'catalogo', nombre: '🍰 Catálogo' },
         { id: 'carrito', nombre: '🛒 Mi Carrito' },
         { id: 'pedidos', nombre: '📦 Mis Pedidos' },
-        { id: 'resenas', nombre: '⭐ Escribir Reseña' }
+        { id: 'resenas', nombre: '⭐ Escribir Reseña' },
+        { id: 'perfil', nombre: '👤 Mi Perfil' }
     ];
 
     const menuVendedor = [
         { id: 'inicio', nombre: '🏠 Dashboard' },
         { id: 'productos', nombre: '🧁 Mis Productos' },
         { id: 'pedidos_gestion', nombre: '📋 Gestionar Ventas' },
-        { id: 'resenas_gestion', nombre: '💬 Feedback Clientes' }
+        { id: 'resenas_gestion', nombre: '💬 Feedback Clientes' },
+        { id: 'perfil', nombre: '👤 Mi Perfil' }
     ];
 
     const menuActual = usuario.rol === 'vendedor' ? menuVendedor : menuCliente;
@@ -194,6 +197,7 @@ function App() {
                 {seccionActiva === 'resenas' && <ResenasProducto rol={usuario.rol} usuarioId={usuario.id} />}
                 {seccionActiva === 'resenas_gestion' && <ResenasProducto rol={usuario.rol} usuarioId={usuario.id} />}
                 {seccionActiva === 'productos' && <GestionProductos vendedorId={usuario.id}/>}
+                {seccionActiva === 'perfil' && <PerfilUsuario usuarioId={usuario.id} rol={usuario.rol} />}
 
                 {seccionActiva === 'catalogo' && !productoSeleccionado && (
                     <CatalogoProductos onVerDetalle={(id) => setProductoSeleccionado(id)} />

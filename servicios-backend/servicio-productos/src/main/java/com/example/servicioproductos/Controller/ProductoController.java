@@ -1,6 +1,5 @@
 package com.example.servicioproductos.Controller;
 
-import org.springframework.security.core.Authentication;
 import com.example.servicioproductos.Model.Producto;
 import com.example.servicioproductos.Service.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;

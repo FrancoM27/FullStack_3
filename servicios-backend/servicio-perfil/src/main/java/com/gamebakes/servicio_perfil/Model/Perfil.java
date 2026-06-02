@@ -1,11 +1,10 @@
 package com.gamebakes.servicio_perfil.Model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
@@ -17,9 +16,8 @@ public class Perfil {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idPerfil;
 
-    @OneToOne
-    @JoinColumn(name = "id_usuario", unique = true)
-    private Usuario usuario;
+    @Column(name = "id_usuario", unique = true, nullable = false)
+    private Long usuarioId;
 
     private String nombreCompleto;
     
