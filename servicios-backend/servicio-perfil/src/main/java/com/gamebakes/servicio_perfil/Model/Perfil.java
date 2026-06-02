@@ -16,7 +16,7 @@ public class Perfil {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idPerfil;
-
+//.
     @OneToOne
     @JoinColumn(name = "id_usuario", unique = true)
     private Usuario usuario;
