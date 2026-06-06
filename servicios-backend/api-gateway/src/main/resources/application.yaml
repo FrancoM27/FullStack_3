@@ -1,0 +1,85 @@
+server:
+  port: 9000
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins: "http://localhost:5173"
+            allowed-methods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowed-headers: "*"
+            allow-credentials: true
+      routes:
+         #USUARIOS - RUTA PROTEGIDA (Perfil)
+        - id: servicio-usuarios-perfil
+          uri: http://localhost:8080
+          predicates:
+            - Path=/api/usuarios/perfil/**
+          filters:
+            - AuthenticationFilter
+
+        #USUARIOS - RUTAS PÚBLICAS (Login, Registro, etc)
+        - id: servicio-usuarios-publico
+          uri: http://localhost:8080
+          predicates:
+            - Path=/api/usuarios/**
+
+        # RESEÑAS
+        - id: servicio-resenas
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/resenas/**
+          filters:
+            - AuthenticationFilter
+
+        # PEDIDOS
+        - id: servicio-pedidos
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/pedidos/**
+          filters:
+            - AuthenticationFilter
+
+        # PERFIL
+        - id: servicio-perfil
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/perfil/**
+          filters:
+            - AuthenticationFilter
+
+        # PRODUCTOS - PRIVADO (Crear, Editar, Borrar)
+        - id: servicio-productos-privado
+          uri: http://localhost:8085
+          predicates:
+            - Path=/api/productos/**
+            - Method=POST, PUT, PATCH, DELETE
+          filters:
+            - AuthenticationFilter
+
+        # PRODUCTOS - PÚBLICO (Ver el catálogo)
+        - id: servicio-productos-publico
+          uri: http://localhost:8085
+          predicates:
+            - Path=/api/productos/**
+            - Method=GET, OPTIONS
+
+        # PAGOS
+        - id: servicio-pagos
+          uri: http://localhost:8086
+          predicates:
+            - Path=/api/pagos/**
+          filters:
+            - AuthenticationFilter
