@@ -185,6 +185,7 @@ const DetalleCatalogo = ({ productoId, alVolver, rol, usuarioId }) => {
                 rol={rol}
                 usuarioId={usuarioId}
                 productoId={producto.id}
+                productoNombre={producto.nombre}
                 vendedorId={producto.vendedorId}
                 haComprado={haComprado}
             />

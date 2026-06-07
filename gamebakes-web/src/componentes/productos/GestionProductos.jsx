@@ -88,7 +88,7 @@ export default function GestionProductos({ vendedorId }) {
 
     const handleEliminar = async (id) => {
         if (!window.confirm("¿Retirar del inventario?")) return;
-        await fetch(`http://localhost:8085/api/productos/${id}`, {
+        await fetch(`http://localhost:9000/api/productos/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });

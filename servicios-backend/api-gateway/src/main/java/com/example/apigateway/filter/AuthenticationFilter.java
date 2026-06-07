@@ -30,7 +30,12 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
             ServerHttpRequest request = exchange.getRequest();
 
             String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+            System.out.println("=== AUTHENTICATION FILTER ===");
+            System.out.println("Path: " + request.getPath());
+            System.out.println("AuthHeader: " + authHeader);
+
             if (authHeader == null || !authHeader.startsWith("Bearer ")){
+                System.out.println("Error: Formato de token invalido");
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Formato de token invalido");
             }
 
@@ -47,6 +52,9 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                 String userId = claims.getSubject();
                 String rol = claims.get("rol", String.class);
 
+                System.out.println("UserId: " + userId);
+                System.out.println("Rol: " + rol);
+
                 ServerHttpRequest modifiedRequest = exchange.getRequest().mutate()
                         .header("X-User-Id", userId)
                         .header("X-User-Role", rol)
@@ -54,6 +62,8 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 
                 return chain.filter(exchange.mutate().request(modifiedRequest).build());
             } catch (Exception e){
+                System.out.println("Error validando token: " + e.getMessage());
+                e.printStackTrace();
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token falso o vencido");
             }
         };

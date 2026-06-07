@@ -12,6 +12,7 @@ public class Resena {
     private Long id;
 
     private Long productoId;
+    private String productoNombre;
     
     //Identificación del Cliente
     private Long clienteId;       

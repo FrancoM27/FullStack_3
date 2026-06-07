@@ -41,13 +41,35 @@ public class PedidoService {
     public Pedido actualizarEstado(Long id, String nuevoEstado) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
-        
+
         pedido.setEstado(nuevoEstado);
         Pedido actualizado = pedidoRepository.save(pedido);
-        
+
         //Kafka: Notificar cambio de estado para seguimiento en tiempo real
         kafkaTemplate.send(TOPIC, "ESTADO_ACTUALIZADO: Pedido #" + id + " ahora está en " + nuevoEstado);
-        
+
         return actualizado;
+    }
+
+    public boolean validarCompra(Long clienteId, Long productoId) {
+        List<Pedido> pedidos = pedidoRepository.findByClienteIdAndProductoId(clienteId, productoId);
+        System.out.println("=== VALIDAR COMPRA ===");
+        System.out.println("Cliente: " + clienteId + ", Producto: " + productoId);
+        System.out.println("Pedidos encontrados: " + pedidos.size());
+        return !pedidos.isEmpty();
+    }
+
+    public boolean validarEntregado(Long clienteId, Long productoId) {
+        List<Pedido> pedidos = pedidoRepository.findByClienteIdAndProductoId(clienteId, productoId);
+        System.out.println("=== VALIDAR ENTREGADO ===");
+        System.out.println("Cliente: " + clienteId + ", Producto: " + productoId);
+        System.out.println("Pedidos encontrados: " + pedidos.size());
+        for (Pedido pedido : pedidos) {
+            System.out.println("  - Pedido ID: " + pedido.getId() + ", Estado: " + pedido.getEstado());
+        }
+        boolean entregado = pedidos.stream()
+                .anyMatch(pedido -> "ENTREGADO".equals(pedido.getEstado()));
+        System.out.println("Resultado: " + entregado);
+        return entregado;
     }
 }
