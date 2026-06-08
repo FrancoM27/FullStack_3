@@ -27,8 +27,8 @@ public class PerfilService {
         
         perfil.setUsuarioId(perfilDTO.getUsuarioId());
         perfil.setNombreCompleto(perfilDTO.getNombreCompleto());
-        perfil.setTelefono(perfilDTO.getTelefono());
-        perfil.setDireccion(perfilDTO.getDireccion());
+        perfil.setTelefono(perfilDTO.getTelefono() != null ? perfilDTO.getTelefono() : "");
+        perfil.setDireccion(perfilDTO.getDireccion() != null ? perfilDTO.getDireccion() : "");
         
         Perfil perfilGuardado = perfilRepository.save(perfil);
         return convertirADTO(perfilGuardado);
