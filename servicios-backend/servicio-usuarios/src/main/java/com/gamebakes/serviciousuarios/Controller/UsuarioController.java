@@ -31,9 +31,18 @@ public class UsuarioController {
     }
 
     @PostMapping("/registrar")
-    public ResponseEntity<Usuario> registrarUusario(@Valid @RequestBody RegistroDTO dto) {
+    public ResponseEntity<Map<String, Object>> registrarUusario(@Valid @RequestBody RegistroDTO dto) {
         Usuario nuevoUsuario = usuarioService.registrarUsuario(dto);
-        return ResponseEntity.ok(nuevoUsuario);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", nuevoUsuario.getId());
+        response.put("usuarioId", nuevoUsuario.getId());
+        response.put("username", nuevoUsuario.getUsername());
+        response.put("email", nuevoUsuario.getEmail());
+        response.put("nombreCompleto", nuevoUsuario.getNombreCompleto());
+        response.put("rol", nuevoUsuario.getRol());
+        
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
