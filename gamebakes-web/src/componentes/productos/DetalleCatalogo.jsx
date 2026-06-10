@@ -28,7 +28,7 @@ const DetalleCatalogo = ({ productoId, alVolver, rol, usuarioId }) => {
             const data = await response.json();
             setProducto(data);
         } catch (err) {
-            setError('Error al cargar');
+            setError('Error al cargar el producto.');
         } finally {
             setCargando(false);
         }
@@ -47,8 +47,9 @@ const DetalleCatalogo = ({ productoId, alVolver, rol, usuarioId }) => {
         } catch (err) {}
     };
 
+    // AQUI ESTA LA MAGIA PARA EL CARRITO
     const handleAgregarCarrito = async () => {
-        if (!token) return alert("Inicia sesión");
+        if (!token) return alert("Por favor, inicia sesión para agregar productos al carrito.");
 
         const item = {
             clienteId: usuarioId,
@@ -68,15 +69,20 @@ const DetalleCatalogo = ({ productoId, alVolver, rol, usuarioId }) => {
             });
 
             if (response.ok) {
-                alert("Guardado en el carrito");
+                alert("🛒 ¡Producto agregado al carrito con éxito!");
+            } else {
+                // CAPTURAMOS EL MENSAJE DE ERROR DEL BACKEND
+                const errorText = await response.text();
+                alert(`⚠️ Atención: ${errorText}`);
             }
         } catch (err) {
-            alert("Error al guardar");
+            alert("❌ Ocurrió un error de conexión con el servidor.");
         }
     };
 
+    // LO MISMO PARA LA COMPRA DIRECTA
     const handleComprarAhora = async () => {
-        if (!token) return alert("Inicia sesión");
+        if (!token) return alert("Por favor, inicia sesión para comprar.");
 
         const solicitud = {
             productoId: producto.id,
@@ -102,9 +108,13 @@ const DetalleCatalogo = ({ productoId, alVolver, rol, usuarioId }) => {
                     setEsperandoPago(true);
                     window.open(data.transaccionId, '_blank');
                 }
+            } else {
+                // CAPTURAMOS EL MENSAJE DE ERROR DEL BACKEND SI FALLA
+                const errorText = await response.text();
+                alert(`⚠️ No se pudo iniciar el pago: ${errorText}`);
             }
         } catch (err) {
-            alert("Error");
+            alert("❌ Error de conexión al intentar procesar el pago.");
         }
     };
 
@@ -122,11 +132,11 @@ const DetalleCatalogo = ({ productoId, alVolver, rol, usuarioId }) => {
                 }
             });
             if (response.ok) {
-                alert("Pago confirmado");
+                alert("✅ Pago confirmado. ¡Gracias por tu compra!");
                 window.location.reload();
             }
         } catch (err) {
-            alert("Error");
+            alert("❌ Error al confirmar el pago.");
         }
     };
 

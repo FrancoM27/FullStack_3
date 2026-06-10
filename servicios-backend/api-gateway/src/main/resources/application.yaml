@@ -52,7 +52,14 @@ spring:
           filters:
             - AuthenticationFilter
 
-        # PERFIL
+        # PERFIL - CREACIÓN PÚBLICA (para registro)
+        - id: servicio-perfil-crear
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/perfil
+            - Method=POST
+
+        # PERFIL - RUTAS PROTEGIDAS (obtener, actualizar)
         - id: servicio-perfil
           uri: http://localhost:8084
           predicates:

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DetalleProducto from './DetalleProducto';
+import ProductosArchivados from './ProductosArchivados'; // RECIÉN IMPORTADO
 
 const CATEGORIAS = ["Tortas", "Cupcakes", "Galletas", "Pies & Tartas", "Edición Especial"];
 
@@ -7,6 +8,7 @@ export default function GestionProductos({ vendedorId }) {
     const [productos, setProductos] = useState([]);
     const [cargando, setCargando] = useState(true);
     const [vista, setVista] = useState('grid');
+    const [subPestaeta, setSubPestaeta] = useState('activos'); // 'activos' o 'archivados'
     const [seleccionado, setSeleccionado] = useState(null);
     const [error, setError] = useState('');
 
@@ -35,7 +37,6 @@ export default function GestionProductos({ vendedorId }) {
             });
             const data = await response.json();
 
-            // Seguro de vida
             if (Array.isArray(data)) {
                 setProductos(data);
             } else {
@@ -69,7 +70,12 @@ export default function GestionProductos({ vendedorId }) {
         try {
             const response = await fetch(url, {
                 method: metodo,
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'X-User-Id': String(vendedorId),
+                    'X-User-Role': 'VENDEDOR'
+                },
                 body: JSON.stringify(dataBody)
             });
 
@@ -87,10 +93,13 @@ export default function GestionProductos({ vendedorId }) {
     };
 
     const handleEliminar = async (id) => {
-        if (!window.confirm("¿Retirar del inventario?")) return;
+        if (!window.confirm("¿Retirar del inventario público? El producto se guardará en tu historial archivado.")) return;
         await fetch(`http://localhost:9000/api/productos/${id}`, {
             method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'X-User-Role': 'VENDEDOR'
+            }
         });
         obtenerProductos();
     };
@@ -109,9 +118,11 @@ export default function GestionProductos({ vendedorId }) {
 
     return (
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+
+            {/* Cabecera Principal */}
             <div style={headerStyle}>
                 <h2 style={{ color: colorCian, margin: 0, letterSpacing: '2px' }}>
-                    {vista === 'grid' ? '📦 MI INVENTARIO' : (vista === 'edit' ? '✏️ EDITAR PRODUCTO' : '🚀 NUEVO PRODUCTO')}
+                    {vista === 'grid' ? '📦 GESTIÓN DE INVENTARIO' : (vista === 'edit' ? '✏️ EDITAR PRODUCTO' : '🚀 NUEVO PRODUCTO')}
                 </h2>
                 {vista === 'grid' ? (
                     <button onClick={() => { setVista('form'); setError(''); }} style={btnSubirStyle}>🚀 SUBIR PRODUCTO</button>
@@ -120,38 +131,85 @@ export default function GestionProductos({ vendedorId }) {
                 )}
             </div>
 
+            {/* Selector de Pestañas (Solo visible en la vista principal de la grilla) */}
+            {vista === 'grid' && (
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '25px', borderBottom: '1px solid #222', paddingBottom: '10px' }}>
+                    <button
+                        onClick={() => setSubPestaeta('activos')}
+                        style={{
+                            padding: '10px 20px',
+                            backgroundColor: subPestaeta === 'activos' ? '#00d4ff' : 'transparent',
+                            color: subPestaeta === 'activos' ? 'black' : 'white',
+                            border: '1px solid #00d4ff',
+                            borderRadius: '8px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        📦 PRODUCTOS ACTIVOS
+                    </button>
+                    <button
+                        onClick={() => setSubPestaeta('archivados')}
+                        style={{
+                            padding: '10px 20px',
+                            backgroundColor: subPestaeta === 'archivados' ? '#ff4444' : 'transparent',
+                            color: subPestaeta === 'archivados' ? 'white' : '#ff4444',
+                            border: '1px solid #ff4444',
+                            borderRadius: '8px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        🗄️ VER ARCHIVADOS
+                    </button>
+                </div>
+            )}
+
             {cargando ? (
                 <p style={{textAlign:'center', color: colorCian}}>Cargando base de datos...</p>
             ) : (
                 <>
+                    {/* VISTA 1: GRILLA PRINCIPAL */}
                     {vista === 'grid' && (
-                        <div style={gridStyle}>
-                            {productos.length === 0 ? (
-                                <p style={{gridColumn: '1/-1', textAlign: 'center', color: '#666'}}>No tienes productos registrados.</p>
+                        <>
+                            {subPestaeta === 'activos' ? (
+                                <div style={gridStyle}>
+                                    {/* Aquí filtramos para mostrar solo los que tengan activo === true */}
+                                    {productos.filter(p => p.activo).length === 0 ? (
+                                        <p style={{gridColumn: '1/-1', textAlign: 'center', color: '#666'}}>No tienes productos activos en catálogo.</p>
+                                    ) : (
+                                        productos.filter(p => p.activo).map(p => (
+                                            <div key={p.id} style={cardStyle}>
+                                                <div style={{...imgContainer, backgroundImage: `url(${p.imagenUrl || 'https://via.placeholder.com/300x200'})`}}>
+                                                    <span style={tagStyleGrid}>{p.categoria}</span>
+                                                </div>
+                                                <div style={contentStyle}>
+                                                    <h3 style={{color: colorCian, margin: '0 0 10px 0'}}>{p.nombre}</h3>
+                                                    <div style={infoRow}>
+                                                        <span style={{fontWeight: 'bold'}}>${p.precio.toLocaleString()}</span>
+                                                        <span style={{color: p.stock < 5 ? '#ff4444' : '#44ff44', fontSize: '0.8rem'}}>Stock: {p.stock}</span>
+                                                    </div>
+                                                    <div style={btnGroupGrid}>
+                                                        <button onClick={() => { setSeleccionado(p); setVista('detalle'); }} style={btnMini}>VER</button>
+                                                        <button onClick={() => { setSeleccionado(p); setVista('edit'); }} style={btnMini}>EDITAR</button>
+                                                        <button onClick={() => handleEliminar(p.id)} style={{...btnMini, color: '#ff4444', borderColor: '#ff4444'}}>BORRAR</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
                             ) : (
-                                productos.map(p => (
-                                    <div key={p.id} style={cardStyle}>
-                                        <div style={{...imgContainer, backgroundImage: `url(${p.imagenUrl || 'https://via.placeholder.com/300x200'})`}}>
-                                            <span style={tagStyleGrid}>{p.categoria}</span>
-                                        </div>
-                                        <div style={contentStyle}>
-                                            <h3 style={{color: colorCian, margin: '0 0 10px 0'}}>{p.nombre}</h3>
-                                            <div style={infoRow}>
-                                                <span style={{fontWeight: 'bold'}}>${p.precio.toLocaleString()}</span>
-                                                <span style={{color: p.stock < 5 ? '#ff4444' : '#44ff44', fontSize: '0.8rem'}}>Stock: {p.stock}</span>
-                                            </div>
-                                            <div style={btnGroupGrid}>
-                                                <button onClick={() => { setSeleccionado(p); setVista('detalle'); }} style={btnMini}>VER</button>
-                                                <button onClick={() => { setSeleccionado(p); setVista('edit'); }} style={btnMini}>EDITAR</button>
-                                                <button onClick={() => handleEliminar(p.id)} style={{...btnMini, color: '#ff4444'}}>BORRAR</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
+                                /* RENDERIZAMOS EL NUEVO COMPONENTE QUE CREAMOS EN EL PASO 1 */
+                                <ProductosArchivados
+                                    vendedorId={vendedorId}
+                                    alRestaurarExitoso={obtenerProductos}
+                                />
                             )}
-                        </div>
+                        </>
                     )}
 
+                    {/* VISTA 2: FORMULARIO DE ALTA / EDICIÓN */}
                     {(vista === 'form' || vista === 'edit') && (
                         <div style={formCardStyle}>
                             {error && (
