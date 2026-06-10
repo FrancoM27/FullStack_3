@@ -41,7 +41,7 @@ const DetalleCatalogo = ({ productoId, alVolver, rol, usuarioId }) => {
             });
             if (response.ok) {
                 const pedidos = await response.json();
-                const comprado = pedidos.some(p => p.productoId === productoId);
+                const comprado = pedidos.some(p => p.productoId === productoId && p.estado === 'ENTREGADO');
                 setHaComprado(comprado);
             }
         } catch (err) {}

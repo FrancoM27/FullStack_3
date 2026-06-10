@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -29,7 +29,11 @@ public class PagoService {
     @Autowired
     private CarritoService carritoService;
 
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
+
     private String accessToken = "APP_USR-6384651523153058-051023-18ce169c7c92f41fc1af6ae5d5ad9a39-3392426062";
+    private final String TOPIC = "pago-exitoso-topic";
 
     public Pago iniciarPagoMP(SolicitudPagoDTO solicitud) {
         Pago pago = new Pago();
@@ -128,18 +132,41 @@ public class PagoService {
         pago.setTransaccionId("MP-CONFIRM-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         pago = pagoRepository.save(pago);
 
+        // Enviar mensaje a Kafka
+        Map<String, Object> pagoInfo = new HashMap<>();
+        pagoInfo.put("clienteId", pago.getClienteId());
+        pagoInfo.put("clienteNombre", nombreUsuario);
+        pagoInfo.put("monto", pago.getMonto());
+        pagoInfo.put("transaccionId", pago.getTransaccionId());
+
+        if (pago.getProductoId() != null) {
+            pagoInfo.put("productoId", pago.getProductoId());
+            pagoInfo.put("cantidad", pago.getCantidad());
+        } else {
+            List<CarritoItem> items = carritoService.listarPorCliente(pago.getClienteId());
+            pagoInfo.put("items", items);
+        }
+
+        kafkaTemplate.send(TOPIC, pagoInfo.toString());
+
         try {
             if (pago.getProductoId() != null) {
                 try {
                     restarStock(pago.getProductoId(), pago.getCantidad(), token);
-                    crearPedidoEnServicio(pago.getProductoId(), pago.getClienteId(), pago.getCantidad(), token, nombreUsuario);
                 } catch (Exception ex) {}
             } else {
                 List<CarritoItem> items = carritoService.listarPorCliente(pago.getClienteId());
+
+                // Agrupar items por productoId para evitar pedidos duplicados
+                Map<Long, Integer> productosAgrupados = new HashMap<>();
                 for (CarritoItem item : items) {
+                    productosAgrupados.merge(item.getProductoId(), item.getCantidad(), Integer::sum);
+                }
+
+                // Restar stock de cada producto agrupado
+                for (Map.Entry<Long, Integer> entry : productosAgrupados.entrySet()) {
                     try {
-                        restarStock(item.getProductoId(), item.getCantidad(), token);
-                        crearPedidoEnServicio(item.getProductoId(), pago.getClienteId(), item.getCantidad(), token, nombreUsuario);
+                        restarStock(entry.getKey(), entry.getValue(), token);
                     } catch (Exception ex) {}
                 }
             }
@@ -156,31 +183,6 @@ public class PagoService {
         headers.set("Authorization", token);
         HttpEntity<String> entity = new HttpEntity<>(headers);
         restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
-    }
-
-    private void crearPedidoEnServicio(Long productoId, Long clienteId, Integer cantidad, String token, String nombreUsuario) {
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", token);
-        headers.set("X-User-Id", clienteId.toString());
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        HttpEntity<String> getEntity = new HttpEntity<>(headers);
-        var productoData = restTemplate.exchange("http://localhost:8085/api/productos/" + productoId, HttpMethod.GET, getEntity, Map.class).getBody();
-
-        if (productoData != null) {
-            Map<String, Object> pedidoRequest = new HashMap<>();
-            pedidoRequest.put("clienteId", clienteId);
-            pedidoRequest.put("clienteNombre", nombreUsuario);
-            pedidoRequest.put("productoId", productoId);
-            pedidoRequest.put("productoNombre", productoData.get("nombre"));
-            pedidoRequest.put("vendedorId", productoData.get("vendedorId"));
-            pedidoRequest.put("cantidad", cantidad);
-            pedidoRequest.put("estado", "PENDIENTE");
-
-            HttpEntity<Map<String, Object>> postEntity = new HttpEntity<>(pedidoRequest, headers);
-            restTemplate.postForObject("http://localhost:8082/api/pedidos", postEntity, String.class);
-        }
     }
 
     public List<Pago> obtenerHistorialPorCliente(Long clienteId) {
