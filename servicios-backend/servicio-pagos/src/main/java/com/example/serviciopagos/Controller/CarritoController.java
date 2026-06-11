@@ -20,8 +20,13 @@ public class CarritoController {
     }
 
     @PostMapping("/agregar")
-    public ResponseEntity<CarritoItem> agregar(@RequestBody CarritoItem item) {
-        return ResponseEntity.ok(carritoService.guardarItem(item));
+    public ResponseEntity<?> agregar(@RequestBody CarritoItem item) {
+        try {
+            CarritoItem guardado = carritoService.guardarItem(item);
+            return ResponseEntity.ok(guardado);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/eliminar/{id}")

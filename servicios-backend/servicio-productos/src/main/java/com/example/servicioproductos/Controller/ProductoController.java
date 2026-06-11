@@ -58,14 +58,17 @@ public class ProductoController {
     }
 
     @PatchMapping("/{id}/estado")
-    public ResponseEntity<Producto> cambiarEstado(@PathVariable Long id,
-                                                  @RequestParam boolean activo,
-                                                  @RequestHeader("X-User-Role") String rol){
-        if (!"VENDEDOR".equals(rol)) {
-            throw new RuntimeException("Acceso denegado");
+    public ResponseEntity<?> cambiarEstado(@PathVariable Long id,
+                                           @RequestParam boolean activo,
+                                           @RequestHeader("X-User-Role") String rol){
+        try {
+            if (!"VENDEDOR".equals(rol)) {
+                throw new RuntimeException("Acceso denegado");
+            }
+            return ResponseEntity.ok(productoService.cambiarEstadoActivo(id, activo));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body("Error al cambiar el estado: " + e.getMessage());
         }
-
-        return ResponseEntity.ok(productoService.cambiarEstadoActivo(id, activo));
     }
 
     @PutMapping("/{id}")

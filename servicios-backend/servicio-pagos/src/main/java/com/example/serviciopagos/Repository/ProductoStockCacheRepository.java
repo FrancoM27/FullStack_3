@@ -1,4 +1,7 @@
 package com.example.serviciopagos.Repository;
 
-public interface ProductoStockCacheRepository {
+import com.example.serviciopagos.Model.ProductoStockCache;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ProductoStockCacheRepository extends JpaRepository<ProductoStockCache, Long> {
 }
