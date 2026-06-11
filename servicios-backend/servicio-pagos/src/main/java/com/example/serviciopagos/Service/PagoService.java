@@ -3,7 +3,9 @@ package com.example.serviciopagos.Service;
 import com.example.serviciopagos.DTO.SolicitudPagoDTO;
 import com.example.serviciopagos.Model.Pago;
 import com.example.serviciopagos.Model.CarritoItem;
+import com.example.serviciopagos.Model.ProductoStockCache;
 import com.example.serviciopagos.Repository.PagoRepository;
+import com.example.serviciopagos.Repository.ProductoStockCacheRepository;
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.preference.*;
 import com.mercadopago.resources.preference.Preference;
@@ -30,12 +32,23 @@ public class PagoService {
     private CarritoService carritoService;
 
     @Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
+    private ProductoStockCacheRepository stockCacheRepository;
 
     private String accessToken = "APP_USR-6384651523153058-051023-18ce169c7c92f41fc1af6ae5d5ad9a39-3392426062";
     private final String TOPIC = "pago-exitoso-topic";
 
     public Pago iniciarPagoMP(SolicitudPagoDTO solicitud) {
+
+        ProductoStockCache stockCache = stockCacheRepository.findById(solicitud.getProductoId())
+                .orElseThrow(() -> new RuntimeException("El producto no se encuentra disponible en el catálogo."));
+
+        if (stockCache.getStockDisponible() <= 0) {
+            throw new RuntimeException("El producto se encuentra agotado.");
+        }
+        if (stockCache.getStockDisponible() < solicitud.getCantidad()) {
+            throw new RuntimeException("No hay suficiente stock. Solo quedan " + stockCache.getStockDisponible() + " unidades.");
+        }
+
         Pago pago = new Pago();
         pago.setProductoId(solicitud.getProductoId());
         pago.setCantidad(solicitud.getCantidad());
@@ -68,13 +81,23 @@ public class PagoService {
             pago.setTransaccionId(preference.getInitPoint());
             return pagoRepository.save(pago);
         } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
+            throw new RuntimeException("Error interno al conectar con Mercado Pago");
         }
     }
 
     public Pago iniciarPagoCarrito(Long clienteId) {
         List<CarritoItem> itemsCarrito = carritoService.listarPorCliente(clienteId);
-        if (itemsCarrito.isEmpty()) throw new RuntimeException("Carrito vacío");
+        if (itemsCarrito.isEmpty()) throw new RuntimeException("El carrito está vacío");
+
+ 
+        for (CarritoItem ci : itemsCarrito) {
+            ProductoStockCache stockCache = stockCacheRepository.findById(ci.getProductoId())
+                    .orElseThrow(() -> new RuntimeException("Un producto de tu carrito ya no está disponible."));
+
+            if (stockCache.getStockDisponible() < ci.getCantidad()) {
+                throw new RuntimeException("Stock insuficiente para uno de los productos de tu carrito. Revisa las cantidades.");
+            }
+        }
 
         Double total = itemsCarrito.stream()
                 .mapToDouble(i -> i.getPrecioUnitario() * i.getCantidad())
@@ -111,7 +134,7 @@ public class PagoService {
             pago.setTransaccionId(preference.getInitPoint());
             return pagoRepository.save(pago);
         } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
+            throw new RuntimeException("Error interno al conectar con Mercado Pago");
         }
     }
 
@@ -157,7 +180,6 @@ public class PagoService {
             } else {
                 List<CarritoItem> items = carritoService.listarPorCliente(pago.getClienteId());
 
-                // Agrupar items por productoId para evitar pedidos duplicados
                 Map<Long, Integer> productosAgrupados = new HashMap<>();
                 for (CarritoItem item : items) {
                     productosAgrupados.merge(item.getProductoId(), item.getCantidad(), Integer::sum);

@@ -17,11 +17,15 @@ public class PagoController {
     private PagoService pagoService;
 
     @PostMapping("/iniciar")
-    public ResponseEntity<Pago> iniciar(@RequestBody SolicitudPagoDTO solicitud,
-                                        @RequestHeader("X-User-Id") String usuarioIdStr){
-        Long usuarioId = Long.parseLong(usuarioIdStr);
-        solicitud.setClienteId(usuarioId);
-        return ResponseEntity.ok(pagoService.iniciarPagoMP(solicitud));
+    public ResponseEntity<?> iniciar(@RequestBody SolicitudPagoDTO solicitud,
+                                     @RequestHeader("X-User-Id") String usuarioIdStr){
+        try{
+            Long usuarioId = Long.parseLong(usuarioIdStr);
+            solicitud.setClienteId(usuarioId);
+            return ResponseEntity.ok(pagoService.iniciarPagoMP(solicitud));
+        } catch(RuntimeException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/confirmar/{idPago}")
@@ -40,7 +44,11 @@ public class PagoController {
     }
 
     @PostMapping("/iniciar-desde-carrito/{clienteId}")
-    public ResponseEntity<Pago> iniciarDesdeCarrito(@PathVariable Long clienteId) {
-        return ResponseEntity.ok(pagoService.iniciarPagoCarrito(clienteId));
+    public ResponseEntity<?> iniciarDesdeCarrito(@PathVariable Long clienteId) {
+        try {
+            return ResponseEntity.ok(pagoService.iniciarPagoCarrito(clienteId));
+        } catch(RuntimeException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

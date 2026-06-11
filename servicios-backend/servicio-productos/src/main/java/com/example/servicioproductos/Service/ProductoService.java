@@ -3,9 +3,13 @@ package com.example.servicioproductos.Service;
 import com.example.servicioproductos.Model.Producto;
 import com.example.servicioproductos.Repository.ProductoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ProductoService {
@@ -13,12 +17,16 @@ public class ProductoService {
     @Autowired
     private ProductoRepository productoRepository;
 
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
+
     public List<Producto> listar(){
         return productoRepository.findByActivoTrue();
     }
 
+    // ¡AQUÍ ESTÁ EL CAMBIO MAGISTRAL!
     public List<Producto> listarPorVendedor(Long vendedorId) {
-        return productoRepository.findByVendedorIdAndActivoTrue(vendedorId);
+        return productoRepository.findByVendedorId(vendedorId);
     }
 
     public Producto guardar(Producto producto){
@@ -28,7 +36,12 @@ public class ProductoService {
             producto.setActivo(true);
         }
 
-        return productoRepository.save(producto);
+        Producto guardado = productoRepository.save(producto);
+
+        publicarEventoStock(guardado.getId(), guardado.getStock());
+
+        return guardado;
+
     }
 
     public Producto obtenerPorId(Long id){
@@ -54,6 +67,26 @@ public class ProductoService {
             throw new RuntimeException("Stock insuficiente en bodega para el producto: " + producto.getNombre());
         }
         producto.setStock(producto.getStock() - cantidad);
-        return productoRepository.save(producto);
+        Producto guardado = productoRepository.save(producto);
+
+        publicarEventoStock(guardado.getId(), guardado.getStock());
+
+        return guardado;
+    }
+
+    private void publicarEventoStock(Long productoId, Integer stock){
+        try{
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> evento = new HashMap<>();
+            evento.put("productoId", productoId);
+            evento.put("stock", stock);
+
+            String json = mapper.writeValueAsString(evento);
+
+            kafkaTemplate.send("topic-stock-productos", json);
+            System.out.println("Evento de stock enviado a kafka: "+ json);
+        } catch (Exception e){
+            System.out.println("Error al enviar evento a kafka");
+        }
     }
 }
