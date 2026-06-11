@@ -22,9 +22,9 @@ spring:
             allowed-headers: "*"
             allow-credentials: true
       routes:
-         #USUARIOS - RUTA PROTEGIDA (Perfil)
+        #USUARIOS - RUTA PROTEGIDA (Perfil)
         - id: servicio-usuarios-perfil
-          uri: http://localhost:8080
+          uri: http://servicio-usuarios:8080
           predicates:
             - Path=/api/usuarios/perfil/**
           filters:
@@ -32,13 +32,13 @@ spring:
 
         #USUARIOS - RUTAS PÚBLICAS (Login, Registro, etc)
         - id: servicio-usuarios-publico
-          uri: http://localhost:8080
+          uri: http://servicio-usuarios:8080
           predicates:
             - Path=/api/usuarios/**
 
         # RESEÑAS
         - id: servicio-resenas
-          uri: http://localhost:8081
+          uri: http://servicio-resenas:8081
           predicates:
             - Path=/api/resenas/**
           filters:
@@ -46,7 +46,7 @@ spring:
 
         # PEDIDOS
         - id: servicio-pedidos
-          uri: http://localhost:8082
+          uri: http://servicio-pedidos:8082
           predicates:
             - Path=/api/pedidos/**
           filters:
@@ -54,14 +54,14 @@ spring:
 
         # PERFIL - CREACIÓN PÚBLICA (para registro)
         - id: servicio-perfil-crear
-          uri: http://localhost:8084
+          uri: http://servicio-perfil:8084
           predicates:
             - Path=/api/perfil
             - Method=POST
 
         # PERFIL - RUTAS PROTEGIDAS (obtener, actualizar)
         - id: servicio-perfil
-          uri: http://localhost:8084
+          uri: http://servicio-perfil:8084
           predicates:
             - Path=/api/perfil/**
           filters:
@@ -69,7 +69,7 @@ spring:
 
         # PRODUCTOS - PRIVADO (Crear, Editar, Borrar)
         - id: servicio-productos-privado
-          uri: http://localhost:8085
+          uri: http://servicio-productos:8085
           predicates:
             - Path=/api/productos/**
             - Method=POST, PUT, PATCH, DELETE
@@ -78,14 +78,14 @@ spring:
 
         # PRODUCTOS - PÚBLICO (Ver el catálogo)
         - id: servicio-productos-publico
-          uri: http://localhost:8085
+          uri: http://servicio-productos:8085
           predicates:
             - Path=/api/productos/**
             - Method=GET, OPTIONS
 
         # PAGOS
         - id: servicio-pagos
-          uri: http://localhost:8086
+          uri: http://servicio-pagos:8086
           predicates:
             - Path=/api/pagos/**
           filters:
