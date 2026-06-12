@@ -34,6 +34,9 @@ public class PagoService {
     @Autowired
     private ProductoStockCacheRepository stockCacheRepository;
 
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
+
     private String accessToken = "APP_USR-6384651523153058-051023-18ce169c7c92f41fc1af6ae5d5ad9a39-3392426062";
     private final String TOPIC = "pago-exitoso-topic";
 
@@ -155,7 +158,6 @@ public class PagoService {
         pago.setTransaccionId("MP-CONFIRM-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         pago = pagoRepository.save(pago);
 
-        // Enviar mensaje a Kafka
         Map<String, Object> pagoInfo = new HashMap<>();
         pagoInfo.put("clienteId", pago.getClienteId());
         pagoInfo.put("clienteNombre", nombreUsuario);
