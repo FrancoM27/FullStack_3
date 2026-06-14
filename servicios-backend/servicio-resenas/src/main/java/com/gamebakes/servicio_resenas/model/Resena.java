@@ -3,9 +3,9 @@ package com.gamebakes.servicio_resenas.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+@Data
 @Entity
 @Table(name = "resenas")
-@Data
 public class Resena {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -13,17 +13,17 @@ public class Resena {
 
     private Long productoId;
     private String productoNombre;
-    
+
     //Identificación del Cliente
-    private Long clienteId;       
-    private String clienteNombre; 
+    private Long clienteId;
+    private String clienteNombre;
 
     @Column(length = 1000)
     private String comentario;
-    
+
     private int estrellas; //Del 1 al 5
 
     //Interacción del Vendedor
-    private String respuestaVendedor; 
+    private String respuestaVendedor;
     private Long vendedorId; //ID del vendedor dueño del producto
 }
