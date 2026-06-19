@@ -16,7 +16,7 @@ public class EmailService {
         message.setTo(email);
         message.setSubject("Recuperación de Contraseña - Gamebakes");
 
-        String url = "http://localhost:5173/reset-password?token=" + token;
+        String url = "http://18.205.233.123:5173/reset-password?token=" + token;
 
         message.setText("Hola Guerrero .\n\n" +
                 "Has solicitado reestablecer tu contraseña. Haz clic en el siguiente enlace para continuar:\n" +

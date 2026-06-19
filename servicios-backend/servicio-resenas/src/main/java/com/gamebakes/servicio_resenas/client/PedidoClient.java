@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(
     name = "servicio-pedidos",
-    url = "http://localhost:8082/api/pedidos",
+    url = "http://18.205.233.123:8082/api/pedidos",
     configuration = FeignLoggerConfig.class
 )
 public interface PedidoClient {
