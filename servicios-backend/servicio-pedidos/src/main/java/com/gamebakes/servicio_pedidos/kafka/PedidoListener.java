@@ -101,7 +101,7 @@ public class PedidoListener {
         try {
             // Obtener información del producto desde el servicio de productos
             RestTemplate restTemplate = new RestTemplate();
-            String productoUrl = "http://localhost:8085/api/productos/" + productoId;
+            String productoUrl = "http://18.205.233.123:8085/api/productos/" + productoId;
             Map<String, Object> productoData = restTemplate.getForObject(productoUrl, Map.class);
 
             if (productoData != null) {

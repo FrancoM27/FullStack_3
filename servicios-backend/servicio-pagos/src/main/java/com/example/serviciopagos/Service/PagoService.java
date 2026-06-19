@@ -72,7 +72,7 @@ public class PagoService {
             List<PreferenceItemRequest> items = new ArrayList<>();
             items.add(itemRequest);
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success("http://localhost:5173/pago-exito")
+                    .success("http://18.205.233.123:5173/pago-exito")
                     .build();
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(items)
@@ -125,7 +125,7 @@ public class PagoService {
                         .build());
             }
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success("http://localhost:5173/pago-exito")
+                    .success("http://18.205.233.123:5173/pago-exito")
                     .build();
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(itemsPreference)
@@ -202,7 +202,7 @@ public class PagoService {
 
     private void restarStock(Long productoId, Integer cantidad, String token) {
         RestTemplate restTemplate = new RestTemplate();
-        String url = "http://localhost:8085/api/productos/" + productoId + "/restar-stock?cantidad=" + cantidad;
+        String url = "http://18.205.233.123:8085/api/productos/" + productoId + "/restar-stock?cantidad=" + cantidad;
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", token);
         HttpEntity<String> entity = new HttpEntity<>(headers);
