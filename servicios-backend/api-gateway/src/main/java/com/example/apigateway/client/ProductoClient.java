@@ -1,28 +1,50 @@
 package com.example.apigateway.client;
 
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
-@FeignClient(
-    name = "servicio-productos",
-    url = "http://18.205.233.123:8085/api/productos"
-)
-public interface ProductoClient {
+@Service
+public class ProductoClient {
 
-    @GetMapping("/{id}")
-    Map<String, Object> obtenerProducto(@PathVariable("id") Long id);
+    private final WebClient webClient;
 
-    @GetMapping
-    Map<String, Object>[] obtenerProductos();
+    public ProductoClient(@Qualifier("productosWebClient") WebClient webClient) {
+        this.webClient = webClient;
+    }
 
-    @GetMapping("/vendedor/{vendedorId}")
-    Map<String, Object>[] obtenerProductosPorVendedor(@PathVariable("vendedorId") Long vendedorId);
+    public Mono<Map<String, Object>> obtenerProducto(Long id) {
+        return webClient.get()
+                .uri("/{id}", id)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
 
-    @PutMapping("/{id}/restar-stock")
-    void restarStock(@PathVariable("id") Long id, @RequestParam("cantidad") Integer cantidad);
+    public Flux<Map<String, Object>> obtenerProductos() {
+        return webClient.get()
+                .retrieve()
+                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
+
+    public Flux<Map<String, Object>> obtenerProductosPorVendedor(Long vendedorId) {
+        return webClient.get()
+                .uri("/vendedor/{vendedorId}", vendedorId)
+                .retrieve()
+                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
+
+    public Mono<Void> restarStock(Long id, Integer cantidad) {
+        return webClient.put()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/{id}/restar-stock")
+                        .queryParam("cantidad", cantidad)
+                        .build(id))
+                .retrieve()
+                .bodyToMono(Void.class);
+    }
 }

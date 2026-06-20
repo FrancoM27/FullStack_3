@@ -8,8 +8,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -26,64 +28,54 @@ public class BffDashboardController {
     private ResenaClient resenaClient;
 
     @GetMapping("/cliente/{clienteId}")
-    public Map<String, Object> obtenerDashboardCliente(@PathVariable Long clienteId) {
-        Map<String, Object> response = new HashMap<>();
-        
-        try {
-            // Obtener perfil del cliente
-            Map<String, Object> perfil = perfilClient.obtenerPerfil(clienteId);
-            response.put("perfil", perfil);
-            
-            // Obtener pedidos del cliente
-            Map<String, Object>[] pedidos = pedidoClient.obtenerMisPedidos();
-            response.put("pedidos", pedidos);
-            
-            // Obtener reseñas del cliente
-            Map<String, Object>[] resenas = resenaClient.obtenerResenasCliente();
-            response.put("resenas", resenas);
-            
-            // Calcular estadísticas
-            response.put("estadisticas", calcularEstadisticas(pedidos, resenas));
-            
-        } catch (Exception e) {
-            response.put("error", e.getMessage());
-        }
-        
-        return response;
+    public Mono<Map<String, Object>> obtenerDashboardCliente(@PathVariable Long clienteId) {
+        return Mono.zip(
+                perfilClient.obtenerPerfil(clienteId),
+                pedidoClient.obtenerMisPedidos().collectList(),
+                resenaClient.obtenerResenasCliente().collectList()
+        )
+        .map(tuple -> {
+            Map<String, Object> response = new HashMap<>();
+            response.put("perfil", tuple.getT1());
+            response.put("pedidos", tuple.getT2());
+            response.put("resenas", tuple.getT3());
+            response.put("estadisticas", calcularEstadisticas(tuple.getT2(), tuple.getT3()));
+            return response;
+        })
+        .onErrorResume(e -> {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return Mono.just(errorResponse);
+        });
     }
     
     @GetMapping("/vendedor/{vendedorId}")
-    public Map<String, Object> obtenerDashboardVendedor(@PathVariable Long vendedorId) {
-        Map<String, Object> response = new HashMap<>();
-        
-        try {
-            // Obtener perfil del vendedor
-            Map<String, Object> perfil = perfilClient.obtenerPerfil(vendedorId);
-            response.put("perfil", perfil);
-            
-            // Obtener pedidos del vendedor
-            Map<String, Object>[] pedidos = pedidoClient.obtenerPedidosVendedor(vendedorId);
-            response.put("pedidos", pedidos);
-            
-            // Obtener reseñas del vendedor
-            Map<String, Object>[] resenas = resenaClient.obtenerResenasVendedor(vendedorId);
-            response.put("resenas", resenas);
-            
-            // Calcular estadísticas
-            response.put("estadisticas", calcularEstadisticas(pedidos, resenas));
-            
-        } catch (Exception e) {
-            response.put("error", e.getMessage());
-        }
-        
-        return response;
+    public Mono<Map<String, Object>> obtenerDashboardVendedor(@PathVariable Long vendedorId) {
+        return Mono.zip(
+                perfilClient.obtenerPerfil(vendedorId),
+                pedidoClient.obtenerPedidosVendedor(vendedorId).collectList(),
+                resenaClient.obtenerResenasVendedor(vendedorId).collectList()
+        )
+        .map(tuple -> {
+            Map<String, Object> response = new HashMap<>();
+            response.put("perfil", tuple.getT1());
+            response.put("pedidos", tuple.getT2());
+            response.put("resenas", tuple.getT3());
+            response.put("estadisticas", calcularEstadisticas(tuple.getT2(), tuple.getT3()));
+            return response;
+        })
+        .onErrorResume(e -> {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return Mono.just(errorResponse);
+        });
     }
     
-    private Map<String, Object> calcularEstadisticas(Map<String, Object>[] pedidos, Map<String, Object>[] resenas) {
+    private Map<String, Object> calcularEstadisticas(List<Map<String, Object>> pedidos, List<Map<String, Object>> resenas) {
         Map<String, Object> estadisticas = new HashMap<>();
         
-        int totalPedidos = pedidos != null ? pedidos.length : 0;
-        int totalResenas = resenas != null ? resenas.length : 0;
+        int totalPedidos = pedidos != null ? pedidos.size() : 0;
+        int totalResenas = resenas != null ? resenas.size() : 0;
         
         int pedidosEntregados = 0;
         int pedidosEnCamino = 0;
@@ -99,7 +91,7 @@ public class BffDashboardController {
         }
         
         double promedioEstrellas = 0.0;
-        if (resenas != null && resenas.length > 0) {
+        if (resenas != null && !resenas.isEmpty()) {
             double sumaEstrellas = 0.0;
             for (Map<String, Object> resena : resenas) {
                 Number estrellas = (Number) resena.get("estrellas");
@@ -107,7 +99,7 @@ public class BffDashboardController {
                     sumaEstrellas += estrellas.doubleValue();
                 }
             }
-            promedioEstrellas = sumaEstrellas / resenas.length;
+            promedioEstrellas = sumaEstrellas / resenas.size();
         }
         
         estadisticas.put("totalPedidos", totalPedidos);

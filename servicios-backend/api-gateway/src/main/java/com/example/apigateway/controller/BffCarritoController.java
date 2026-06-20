@@ -7,10 +7,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -24,42 +23,44 @@ public class BffCarritoController {
     private ProductoClient productoClient;
 
     @GetMapping("/completo/{clienteId}")
-    public Map<String, Object> obtenerCarritoCompleto(@PathVariable Long clienteId) {
-        Map<String, Object> response = new HashMap<>();
-        
-        try {
-            // Obtener items del carrito
-            Map<String, Object>[] itemsCarrito = pagoClient.obtenerCarrito(clienteId);
-            
-            // Agregar detalles de productos a cada item
-            List<Map<String, Object>> itemsConDetalles = new ArrayList<>();
-            for (Map<String, Object> item : itemsCarrito) {
-                Map<String, Object> itemConDetalle = new HashMap<>(item);
-                
-                try {
-                    Long productoId = ((Number) item.get("productoId")).longValue();
-                    Map<String, Object> producto = productoClient.obtenerProducto(productoId);
-                    itemConDetalle.put("productoDetalle", producto);
-                } catch (Exception e) {
-                    itemConDetalle.put("productoDetalle", null);
-                }
-                
-                itemsConDetalles.add(itemConDetalle);
-            }
-            
-            response.put("items", itemsConDetalles);
-            response.put("total", calcularTotal(itemsConDetalles));
-            
-        } catch (Exception e) {
-            response.put("items", new ArrayList<>());
-            response.put("total", 0.0);
-            response.put("error", e.getMessage());
-        }
-        
-        return response;
+    public Mono<Map<String, Object>> obtenerCarritoCompleto(@PathVariable Long clienteId) {
+        return pagoClient.obtenerCarrito(clienteId)
+                .flatMap(item -> {
+                    Long productoId = item.get("productoId") instanceof Number ? 
+                            ((Number) item.get("productoId")).longValue() : null;
+                    
+                    if (productoId != null) {
+                        return productoClient.obtenerProducto(productoId)
+                                .map(producto -> {
+                                    item.put("productoDetalle", producto);
+                                    return item;
+                                })
+                                .onErrorResume(e -> {
+                                    item.put("productoDetalle", null);
+                                    return Mono.just(item);
+                                });
+                    } else {
+                        item.put("productoDetalle", null);
+                        return Mono.just(item);
+                    }
+                })
+                .collectList()
+                .map(items -> {
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("items", items);
+                    response.put("total", calcularTotal(items));
+                    return response;
+                })
+                .onErrorResume(e -> {
+                    Map<String, Object> errorResponse = new HashMap<>();
+                    errorResponse.put("items", new java.util.ArrayList<>());
+                    errorResponse.put("total", 0.0);
+                    errorResponse.put("error", e.getMessage());
+                    return Mono.just(errorResponse);
+                });
     }
     
-    private double calcularTotal(List<Map<String, Object>> items) {
+    private double calcularTotal(java.util.List<Map<String, Object>> items) {
         double total = 0.0;
         for (Map<String, Object> item : items) {
             Number cantidad = (Number) item.get("cantidad");

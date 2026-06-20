@@ -1,28 +1,54 @@
 package com.example.apigateway.client;
 
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
-@FeignClient(
-    name = "servicio-pedidos",
-    url = "http://18.205.233.123:8082/api/pedidos"
-)
-public interface PedidoClient {
+@Service
+public class PedidoClient {
 
-    @GetMapping("/mis-pedidos")
-    Map<String, Object>[] obtenerMisPedidos();
+    private final WebClient webClient;
 
-    @GetMapping("/vendedor/{vendedorId}")
-    Map<String, Object>[] obtenerPedidosVendedor(@PathVariable("vendedorId") Long vendedorId);
+    public PedidoClient(@Qualifier("pedidosWebClient") WebClient webClient) {
+        this.webClient = webClient;
+    }
 
-    @GetMapping("/{id}/estado")
-    Map<String, Object> validarCompra(@PathVariable("id") Long clienteId, @RequestParam("productoId") Long productoId);
+    public Flux<Map<String, Object>> obtenerMisPedidos() {
+        return webClient.get()
+                .uri("/mis-pedidos")
+                .retrieve()
+                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
 
-    @PutMapping("/{id}/estado")
-    void cambiarEstado(@PathVariable("id") Long id, @RequestParam("nuevoEstado") String nuevoEstado);
+    public Flux<Map<String, Object>> obtenerPedidosVendedor(Long vendedorId) {
+        return webClient.get()
+                .uri("/vendedor/{vendedorId}", vendedorId)
+                .retrieve()
+                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
+
+    public Mono<Map<String, Object>> validarCompra(Long clienteId, Long productoId) {
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/{id}/estado")
+                        .queryParam("productoId", productoId)
+                        .build(clienteId))
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
+
+    public Mono<Void> cambiarEstado(Long id, String nuevoEstado) {
+        return webClient.put()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/{id}/estado")
+                        .queryParam("nuevoEstado", nuevoEstado)
+                        .build(id))
+                .retrieve()
+                .bodyToMono(Void.class);
+    }
 }

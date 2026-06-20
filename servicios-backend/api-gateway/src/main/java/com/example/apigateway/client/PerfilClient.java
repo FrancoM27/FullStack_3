@@ -1,26 +1,42 @@
 package com.example.apigateway.client;
 
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
-@FeignClient(
-    name = "servicio-perfil",
-    url = "http://18.205.233.123:8084/api/perfil"
-)
-public interface PerfilClient {
+@Service
+public class PerfilClient {
 
-    @GetMapping("/usuario/{usuarioId}")
-    Map<String, Object> obtenerPerfil(@PathVariable("usuarioId") Long usuarioId);
+    private final WebClient webClient;
 
-    @PostMapping
-    Map<String, Object> crearPerfil(@RequestBody Map<String, Object> perfil);
+    public PerfilClient(@Qualifier("perfilWebClient") WebClient webClient) {
+        this.webClient = webClient;
+    }
 
-    @PutMapping("/usuario/{usuarioId}")
-    Map<String, Object> actualizarPerfil(@PathVariable("usuarioId") Long usuarioId, @RequestBody Map<String, Object> perfil);
+    public Mono<Map<String, Object>> obtenerPerfil(Long usuarioId) {
+        return webClient.get()
+                .uri("/usuario/{usuarioId}", usuarioId)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
+
+    public Mono<Map<String, Object>> crearPerfil(Map<String, Object> perfil) {
+        return webClient.post()
+                .uri("")
+                .bodyValue(perfil)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
+
+    public Mono<Map<String, Object>> actualizarPerfil(Long usuarioId, Map<String, Object> perfil) {
+        return webClient.put()
+                .uri("/usuario/{usuarioId}", usuarioId)
+                .bodyValue(perfil)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
 }

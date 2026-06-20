@@ -1,31 +1,57 @@
 package com.example.apigateway.client;
 
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
-@FeignClient(
-    name = "servicio-pagos",
-    url = "http://18.205.233.123:8086/api/pagos"
-)
-public interface PagoClient {
+@Service
+public class PagoClient {
 
-    @GetMapping("/carrito/{clienteId}")
-    Map<String, Object>[] obtenerCarrito(@PathVariable("clientId") Long clienteId);
+    private final WebClient webClient;
 
-    @PostMapping("/carrito/agregar")
-    Map<String, Object> agregarAlCarrito(@RequestBody Map<String, Object> item);
+    public PagoClient(@Qualifier("pagosWebClient") WebClient webClient) {
+        this.webClient = webClient;
+    }
 
-    @PostMapping("/iniciar")
-    Map<String, Object> iniciarPago(@RequestBody Map<String, Object> solicitud);
+    public Flux<Map<String, Object>> obtenerCarrito(Long clienteId) {
+        return webClient.get()
+                .uri("/carrito/{clienteId}", clienteId)
+                .retrieve()
+                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
 
-    @PostMapping("/iniciar-desde-carrito/{clienteId}")
-    Map<String, Object> iniciarPagoDesdeCarrito(@PathVariable("clientId") Long clienteId);
+    public Mono<Map<String, Object>> agregarAlCarrito(Map<String, Object> item) {
+        return webClient.post()
+                .uri("/carrito/agregar")
+                .bodyValue(item)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
 
-    @PostMapping("/confirmar/{idPago}")
-    Map<String, Object> confirmarPago(@PathVariable("idPago") Long idPago);
+    public Mono<Map<String, Object>> iniciarPago(Map<String, Object> solicitud) {
+        return webClient.post()
+                .uri("/iniciar")
+                .bodyValue(solicitud)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
+
+    public Mono<Map<String, Object>> iniciarPagoDesdeCarrito(Long clienteId) {
+        return webClient.post()
+                .uri("/iniciar-desde-carrito/{clienteId}", clienteId)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
+
+    public Mono<Map<String, Object>> confirmarPago(Long idPago) {
+        return webClient.post()
+                .uri("/confirmar/{idPago}", idPago)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
 }
