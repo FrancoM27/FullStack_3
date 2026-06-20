@@ -11,7 +11,10 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowed-origins: "http://18.205.233.123:5173"
+            allowed-origins:
+            - "http://18.205.233.123:5173"
+            - "http://54.167.92.244:5173"
+            - "http://54.167.92.244"
             allowed-methods:
               - GET
               - POST
@@ -22,28 +25,6 @@ spring:
             allowed-headers: "*"
             allow-credentials: true
       routes:
-        # BFF - Rutas de Backend for Frontend (Agregación de datos)
-        - id: bff-productos-detalle-completo
-          uri: lb://api-gateway
-          predicates:
-            - Path=/bff/productos/**
-          filters:
-            - AuthenticationFilter
-
-        - id: bff-carrito-completo
-          uri: lb://api-gateway
-          predicates:
-            - Path=/bff/carrito/**
-          filters:
-            - AuthenticationFilter
-
-        - id: bff-dashboard
-          uri: lb://api-gateway
-          predicates:
-            - Path=/bff/dashboard/**
-          filters:
-            - AuthenticationFilter
-
         #USUARIOS - RUTA PROTEGIDA (Perfil)
         - id: servicio-usuarios-perfil
           uri: http://servicio-usuarios:8080
