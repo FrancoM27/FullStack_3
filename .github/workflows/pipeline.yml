@@ -70,7 +70,7 @@ jobs:
 
       - name: Build y Push del Frontend
         run: |
-          echo "VITE_API_URL=http://18.211.231.0:9000" > ./gamebakes-web/.env
+          echo "VITE_API_URL=http://52.1.214.93:9000" > ./gamebakes-web/.env
         
           docker build -t ${{ secrets.DOCKER_USERNAME }}/gb-frontend-react:latest ./gamebakes-web
           docker push ${{ secrets.DOCKER_USERNAME }}/gb-frontend-react:latest
