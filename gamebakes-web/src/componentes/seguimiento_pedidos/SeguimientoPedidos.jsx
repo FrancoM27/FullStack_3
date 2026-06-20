@@ -13,8 +13,8 @@ export default function SeguimientoPedidos({ rol, usuarioId }) {
             setCargando(true);
             const token = sessionStorage.getItem('token');
             const url = rol === 'vendedor'
-                ? `http://18.205.233.123:9000/api/pedidos/vendedor/${usuarioId}`
-                : `http://18.205.233.123:9000/api/pedidos/mis-pedidos`;
+                ? `${import.meta.env.VITE_API_URL}/api/pedidos/vendedor/${usuarioId}`
+                : `${import.meta.env.VITE_API_URL}/api/pedidos/mis-pedidos`;
 
             const res = await fetch(url, {
                 headers: {
@@ -50,7 +50,7 @@ export default function SeguimientoPedidos({ rol, usuarioId }) {
     const cambiarEstado = async (id, nuevoEstado) => {
         try {
             const token = sessionStorage.getItem('token');
-            await fetch(`http://18.205.233.123:9000/api/pedidos/${id}/estado?nuevoEstado=${nuevoEstado}`, {
+            await fetch(`${import.meta.env.VITE_API_URL}/api/pedidos/${id}/estado?nuevoEstado=${nuevoEstado}`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

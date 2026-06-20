@@ -10,6 +10,7 @@ import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.preference.*;
 import com.mercadopago.resources.preference.Preference;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,9 @@ public class PagoService {
 
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
+
+    @Value("${frontend.url:http://18.211.231.0:5173}")
+    private String frontendUrl;
 
     private String accessToken = "APP_USR-6384651523153058-051023-18ce169c7c92f41fc1af6ae5d5ad9a39-3392426062";
     private final String TOPIC = "pago-exitoso-topic";
@@ -68,7 +72,7 @@ public class PagoService {
             List<PreferenceItemRequest> items = new ArrayList<>();
             items.add(itemRequest);
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success("http://54.167.92.244:5173/pago-exito")
+                    .success(frontendUrl + "/pago-exito")
                     .build();
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(items)
@@ -120,7 +124,7 @@ public class PagoService {
                         .build());
             }
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success("http://54.167.92.244:5173/pago-exito")
+                    .success(frontendUrl + "/pago-exito")
                     .build();
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(itemsPreference)

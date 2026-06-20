@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DetalleProducto from './DetalleProducto';
-import ProductosArchivados from './ProductosArchivados'; // RECIÉN IMPORTADO
+import ProductosArchivados from './ProductosArchivados';
 
 const CATEGORIAS = ["Tortas", "Cupcakes", "Galletas", "Pies & Tartas", "Edición Especial"];
 
@@ -8,7 +8,7 @@ export default function GestionProductos({ vendedorId }) {
     const [productos, setProductos] = useState([]);
     const [cargando, setCargando] = useState(true);
     const [vista, setVista] = useState('grid');
-    const [subPestaeta, setSubPestaeta] = useState('activos'); // 'activos' o 'archivados'
+    const [subPestaeta, setSubPestaeta] = useState('activos');
     const [seleccionado, setSeleccionado] = useState(null);
     const [error, setError] = useState('');
 
@@ -30,7 +30,7 @@ export default function GestionProductos({ vendedorId }) {
     const obtenerProductos = async () => {
         setCargando(true);
         try {
-            const response = await fetch(`http://localhost:9000/api/productos/vendedor/${vendedorId}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/productos/vendedor/${vendedorId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -63,7 +63,7 @@ export default function GestionProductos({ vendedorId }) {
         }
 
         const esEdit = vista === 'edit';
-        const url = esEdit ? `http://localhost:9000/api/productos/${seleccionado.id}` : 'http://localhost:9000/api/productos';
+        const url = esEdit ? `${import.meta.env.VITE_API_URL}/api/productos/${seleccionado.id}` : `${import.meta.env.VITE_API_URL}/api/productos`;
         const metodo = esEdit ? 'PUT' : 'POST';
         const dataBody = esEdit ? seleccionado : { ...nuevoProd, vendedorId };
 
@@ -94,7 +94,7 @@ export default function GestionProductos({ vendedorId }) {
 
     const handleEliminar = async (id) => {
         if (!window.confirm("¿Retirar del inventario público? El producto se guardará en tu historial archivado.")) return;
-        await fetch(`http://localhost:9000/api/productos/${id}`, {
+        await fetch(`${import.meta.env.VITE_API_URL}/api/productos/${id}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -119,7 +119,6 @@ export default function GestionProductos({ vendedorId }) {
     return (
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
 
-            {/* Cabecera Principal */}
             <div style={headerStyle}>
                 <h2 style={{ color: colorCian, margin: 0, letterSpacing: '2px' }}>
                     {vista === 'grid' ? '📦 GESTIÓN DE INVENTARIO' : (vista === 'edit' ? '✏️ EDITAR PRODUCTO' : '🚀 NUEVO PRODUCTO')}
@@ -131,7 +130,6 @@ export default function GestionProductos({ vendedorId }) {
                 )}
             </div>
 
-            {/* Selector de Pestañas (Solo visible en la vista principal de la grilla) */}
             {vista === 'grid' && (
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '25px', borderBottom: '1px solid #222', paddingBottom: '10px' }}>
                     <button
@@ -169,12 +167,10 @@ export default function GestionProductos({ vendedorId }) {
                 <p style={{textAlign:'center', color: colorCian}}>Cargando base de datos...</p>
             ) : (
                 <>
-                    {/* VISTA 1: GRILLA PRINCIPAL */}
                     {vista === 'grid' && (
                         <>
                             {subPestaeta === 'activos' ? (
                                 <div style={gridStyle}>
-                                    {/* Aquí filtramos para mostrar solo los que tengan activo === true */}
                                     {productos.filter(p => p.activo).length === 0 ? (
                                         <p style={{gridColumn: '1/-1', textAlign: 'center', color: '#666'}}>No tienes productos activos en catálogo.</p>
                                     ) : (
@@ -200,7 +196,6 @@ export default function GestionProductos({ vendedorId }) {
                                     )}
                                 </div>
                             ) : (
-                                /* RENDERIZAMOS EL NUEVO COMPONENTE QUE CREAMOS EN EL PASO 1 */
                                 <ProductosArchivados
                                     vendedorId={vendedorId}
                                     alRestaurarExitoso={obtenerProductos}
@@ -209,7 +204,6 @@ export default function GestionProductos({ vendedorId }) {
                         </>
                     )}
 
-                    {/* VISTA 2: FORMULARIO DE ALTA / EDICIÓN */}
                     {(vista === 'form' || vista === 'edit') && (
                         <div style={formCardStyle}>
                             {error && (

@@ -24,7 +24,7 @@ const DetalleCatalogo = ({ productoId, alVolver, rol, usuarioId }) => {
         try {
             setCargando(true);
             const headers = { 'Authorization': `Bearer ${token}` };
-            const response = await fetch(`http://18.205.233.123:9000/bff/productos/${productoId}/detalle-completo`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/bff/productos/${productoId}/detalle-completo`, {
                 headers: token ? headers : {}
             });
             if (!response.ok) throw new Error('Error');
@@ -41,11 +41,8 @@ const DetalleCatalogo = ({ productoId, alVolver, rol, usuarioId }) => {
     };
 
     const verificarCompra = async () => {
-        // La verificación de compra ahora se hace en el endpoint BFF
-        // No se necesita llamada adicional
     };
 
-    // AQUI ESTA LA MAGIA PARA EL CARRITO
     const handleAgregarCarrito = async () => {
         if (!token) return alert("Por favor, inicia sesión para agregar productos al carrito.");
 
@@ -57,7 +54,7 @@ const DetalleCatalogo = ({ productoId, alVolver, rol, usuarioId }) => {
         };
 
         try {
-            const response = await fetch('http://18.205.233.123:9000/api/pagos/carrito/agregar', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/pagos/carrito/agregar`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -69,7 +66,6 @@ const DetalleCatalogo = ({ productoId, alVolver, rol, usuarioId }) => {
             if (response.ok) {
                 alert("🛒 ¡Producto agregado al carrito con éxito!");
             } else {
-                // CAPTURAMOS EL MENSAJE DE ERROR DEL BACKEND
                 const errorText = await response.text();
                 alert(`⚠️ Atención: ${errorText}`);
             }
@@ -78,7 +74,6 @@ const DetalleCatalogo = ({ productoId, alVolver, rol, usuarioId }) => {
         }
     };
 
-    // LO MISMO PARA LA COMPRA DIRECTA
     const handleComprarAhora = async () => {
         if (!token) return alert("Por favor, inicia sesión para comprar.");
 
@@ -90,7 +85,7 @@ const DetalleCatalogo = ({ productoId, alVolver, rol, usuarioId }) => {
         };
 
         try {
-            const response = await fetch('http://18.205.233.123:9000/api/pagos/iniciar', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/pagos/iniciar`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -107,7 +102,6 @@ const DetalleCatalogo = ({ productoId, alVolver, rol, usuarioId }) => {
                     window.open(data.transaccionId, '_blank');
                 }
             } else {
-                // CAPTURAMOS EL MENSAJE DE ERROR DEL BACKEND SI FALLA
                 const errorText = await response.text();
                 alert(`⚠️ No se pudo iniciar el pago: ${errorText}`);
             }
@@ -121,7 +115,7 @@ const DetalleCatalogo = ({ productoId, alVolver, rol, usuarioId }) => {
             const auth = getAuthData();
             const nombreReal = auth && auth.nombre ? auth.nombre : 'Cliente';
 
-            const response = await fetch(`http://18.205.233.123:9000/api/pagos/confirmar/${idPagoGenerado}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/pagos/confirmar/${idPagoGenerado}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,

@@ -21,16 +21,13 @@ export default function ResenasProducto({ rol, usuarioId, productoId, productoNo
             let url;
 
             if (rol === 'cliente' && !productoId) {
-                // Cargar reseñas del cliente
-                url = `http://18.205.233.123:9000/api/resenas/cliente`;
+                url = `${import.meta.env.VITE_API_URL}/api/resenas/cliente`;
                 console.log("Cargando reseñas del cliente:", url);
             } else if (rol === 'vendedor' && !productoId) {
-                // Cargar reseñas del vendedor
-                url = `http://18.205.233.123:9000/api/resenas/vendedor/${usuarioId}`;
+                url = `${import.meta.env.VITE_API_URL}/api/resenas/vendedor/${usuarioId}`;
                 console.log("Cargando reseñas del vendedor:", url);
             } else {
-                // Cargar reseñas del producto
-                url = `http://18.205.233.123:9000/api/resenas/producto/${productoId}`;
+                url = `${import.meta.env.VITE_API_URL}/api/resenas/producto/${productoId}`;
                 console.log("Cargando reseñas del producto:", url);
             }
 
@@ -85,7 +82,7 @@ export default function ResenasProducto({ rol, usuarioId, productoId, productoNo
         };
 
         try {
-            const response = await fetch('http://18.205.233.123:9000/api/resenas', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/resenas`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -118,7 +115,7 @@ export default function ResenasProducto({ rol, usuarioId, productoId, productoNo
 
         const token = sessionStorage.getItem('token');
         try {
-            const response = await fetch(`http://18.205.233.123:9000/api/resenas/${resenaId}/responder`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/resenas/${resenaId}/responder`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
