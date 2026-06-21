@@ -71,21 +71,31 @@ public class PagoService {
                     .build();
             List<PreferenceItemRequest> items = new ArrayList<>();
             items.add(itemRequest);
+
+            // Aquí le pasamos las 3 rutas obligatorias para que no tire el Error 400
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
                     .success(frontendUrl + "/pago-exito")
+                    .failure(frontendUrl + "/carrito")
+                    .pending(frontendUrl + "/carrito")
                     .build();
+
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(items)
                     .backUrls(backUrls)
                     .autoReturn("approved")
                     .externalReference(pago.getIdPago().toString())
                     .build();
+
             PreferenceClient client = new PreferenceClient();
             Preference preference = client.create(preferenceRequest);
             pago.setTransaccionId(preference.getInitPoint());
             return pagoRepository.save(pago);
+
         } catch (Exception e) {
-            throw new RuntimeException("Error interno al conectar con Mercado Pago");
+            // Imprimimos el error real en consola
+            System.err.println("💥 ERROR FATAL DE MERCADO PAGO: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error de Mercado Pago: " + e.getMessage());
         }
     }
 
@@ -124,21 +134,29 @@ public class PagoService {
                         .unitPrice(new BigDecimal(ci.getPrecioUnitario()))
                         .build());
             }
+
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
                     .success(frontendUrl + "/pago-exito")
+                    .failure(frontendUrl + "/carrito")
+                    .pending(frontendUrl + "/carrito")
                     .build();
+
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(itemsPreference)
                     .backUrls(backUrls)
                     .autoReturn("approved")
                     .externalReference(pago.getIdPago().toString())
                     .build();
+
             PreferenceClient client = new PreferenceClient();
             Preference preference = client.create(preferenceRequest);
             pago.setTransaccionId(preference.getInitPoint());
             return pagoRepository.save(pago);
+
         } catch (Exception e) {
-            throw new RuntimeException("Error interno al conectar con Mercado Pago");
+            System.err.println("💥 ERROR FATAL DE MERCADO PAGO: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error de Mercado Pago: " + e.getMessage());
         }
     }
 
