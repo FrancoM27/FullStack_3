@@ -11,7 +11,6 @@ import com.mercadopago.client.preference.*;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.resources.preference.Preference;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,10 +33,6 @@ public class PagoService {
 
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
-
-    // ACTUALIZADO A TU IP ACTUAL Y SIN EL PUERTO 5173
-    @Value("${frontend.url:http://52.1.214.93}")
-    private String frontendUrl;
 
     private String accessToken = "APP_USR-6384651523153058-051023-18ce169c7c92f41fc1af6ae5d5ad9a39-3392426062";
     private final String TOPIC = "pago-exitoso-topic";
@@ -67,7 +62,6 @@ public class PagoService {
         try {
             MercadoPagoConfig.setAccessToken(accessToken);
 
-            // Usamos BigDecimal.valueOf para evitar decimales infinitos que enojan a MP
             PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
                     .title("Compra Directa Gamebakes")
                     .quantity(1)
@@ -76,10 +70,13 @@ public class PagoService {
             List<PreferenceItemRequest> items = new ArrayList<>();
             items.add(itemRequest);
 
+            // QUEMADO DIRECTO: Cero margen de error para Mercado Pago
+            String urlBase = "http://52.1.214.93";
+
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success(frontendUrl + "/pago-exito")
-                    .failure(frontendUrl + "/carrito")
-                    .pending(frontendUrl + "/carrito")
+                    .success(urlBase + "/pago-exito")
+                    .failure(urlBase + "/carrito")
+                    .pending(urlBase + "/carrito")
                     .build();
 
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
@@ -95,7 +92,6 @@ public class PagoService {
             return pagoRepository.save(pago);
 
         } catch (MPApiException apiEx) {
-            // ¡AQUÍ ESTÁ LA TRAMPA PARA ATRAPAR EL ERROR REAL DE MP!
             String jsonError = apiEx.getApiResponse() != null ? apiEx.getApiResponse().getContent() : "Sin detalles de MP";
             System.err.println("💥 ERROR EXACTO DE MERCADO PAGO: " + jsonError);
             throw new RuntimeException(jsonError);
@@ -141,10 +137,13 @@ public class PagoService {
                         .build());
             }
 
+            // QUEMADO DIRECTO: Cero margen de error para Mercado Pago
+            String urlBase = "http://52.1.214.93";
+
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success(frontendUrl + "/pago-exito")
-                    .failure(frontendUrl + "/carrito")
-                    .pending(frontendUrl + "/carrito")
+                    .success(urlBase + "/pago-exito")
+                    .failure(urlBase + "/carrito")
+                    .pending(urlBase + "/carrito")
                     .build();
 
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
@@ -160,7 +159,6 @@ public class PagoService {
             return pagoRepository.save(pago);
 
         } catch (MPApiException apiEx) {
-            // ¡AQUÍ ESTÁ LA TRAMPA PARA ATRAPAR EL ERROR REAL DE MP!
             String jsonError = apiEx.getApiResponse() != null ? apiEx.getApiResponse().getContent() : "Sin detalles de MP";
             System.err.println("💥 ERROR EXACTO DE MERCADO PAGO: " + jsonError);
             throw new RuntimeException(jsonError);
