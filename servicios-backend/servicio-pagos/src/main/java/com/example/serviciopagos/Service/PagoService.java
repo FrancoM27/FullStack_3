@@ -70,13 +70,14 @@ public class PagoService {
             List<PreferenceItemRequest> items = new ArrayList<>();
             items.add(itemRequest);
 
-            // QUEMADO DIRECTO: Cero margen de error para Mercado Pago
-            String urlBase = "http://52.1.214.93";
+            // Hack de HTTPS usando tus TinyURLs creados
+            String urlExitoHTTPS = "https://tinyurl.com/mtsyd5j5";
+            String urlFalloHTTPS = "https://tinyurl.com/3p5akzc5";
 
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success(urlBase + "/pago-exito")
-                    .failure(urlBase + "/carrito")
-                    .pending(urlBase + "/carrito")
+                    .success(urlExitoHTTPS)
+                    .failure(urlFalloHTTPS)
+                    .pending(urlFalloHTTPS)
                     .build();
 
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
@@ -137,13 +138,14 @@ public class PagoService {
                         .build());
             }
 
-            // QUEMADO DIRECTO: Cero margen de error para Mercado Pago
-            String urlBase = "http://52.1.214.93";
+            // Hack de HTTPS usando tus TinyURLs creados
+            String urlExitoHTTPS = "https://tinyurl.com/mtsyd5j5";
+            String urlFalloHTTPS = "https://tinyurl.com/3p5akzc5";
 
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success(urlBase + "/pago-exito")
-                    .failure(urlBase + "/carrito")
-                    .pending(urlBase + "/carrito")
+                    .success(urlExitoHTTPS)
+                    .failure(urlFalloHTTPS)
+                    .pending(urlFalloHTTPS)
                     .build();
 
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
