@@ -86,7 +86,8 @@ const DetalleCatalogo = ({productoId, alVolver, rol, usuarioId}) => {
             productoId: producto.id,
             cantidad: cantidad,
             monto: producto.precio * cantidad,
-            descripcion: `Compra ${producto.nombre}`
+            descripcion: `Compra ${producto.nombre}`,
+            clienteId: usuarioId
         };
 
         try {

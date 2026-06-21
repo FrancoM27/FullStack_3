@@ -8,6 +8,7 @@ import com.example.serviciopagos.Repository.PagoRepository;
 import com.example.serviciopagos.Repository.ProductoStockCacheRepository;
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.preference.*;
+import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.resources.preference.Preference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,7 +35,8 @@ public class PagoService {
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
 
-    @Value("${frontend.url:http://18.211.231.0:5173}")
+    // ACTUALIZADO A TU IP ACTUAL Y SIN EL PUERTO 5173
+    @Value("${frontend.url:http://52.1.214.93}")
     private String frontendUrl;
 
     private String accessToken = "APP_USR-6384651523153058-051023-18ce169c7c92f41fc1af6ae5d5ad9a39-3392426062";
@@ -64,15 +66,16 @@ public class PagoService {
 
         try {
             MercadoPagoConfig.setAccessToken(accessToken);
+
+            // Usamos BigDecimal.valueOf para evitar decimales infinitos que enojan a MP
             PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
                     .title("Compra Directa Gamebakes")
                     .quantity(1)
-                    .unitPrice(new BigDecimal(solicitud.getMonto()))
+                    .unitPrice(BigDecimal.valueOf(solicitud.getMonto()))
                     .build();
             List<PreferenceItemRequest> items = new ArrayList<>();
             items.add(itemRequest);
 
-            // Aquí le pasamos las 3 rutas obligatorias para que no tire el Error 400
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
                     .success(frontendUrl + "/pago-exito")
                     .failure(frontendUrl + "/carrito")
@@ -91,11 +94,14 @@ public class PagoService {
             pago.setTransaccionId(preference.getInitPoint());
             return pagoRepository.save(pago);
 
+        } catch (MPApiException apiEx) {
+            // ¡AQUÍ ESTÁ LA TRAMPA PARA ATRAPAR EL ERROR REAL DE MP!
+            String jsonError = apiEx.getApiResponse() != null ? apiEx.getApiResponse().getContent() : "Sin detalles de MP";
+            System.err.println("💥 ERROR EXACTO DE MERCADO PAGO: " + jsonError);
+            throw new RuntimeException(jsonError);
         } catch (Exception e) {
-            // Imprimimos el error real en consola
-            System.err.println("💥 ERROR FATAL DE MERCADO PAGO: " + e.getMessage());
-            e.printStackTrace();
-            throw new RuntimeException("Error de Mercado Pago: " + e.getMessage());
+            System.err.println("💥 ERROR INTERNO: " + e.getMessage());
+            throw new RuntimeException("Error interno: " + e.getMessage());
         }
     }
 
@@ -131,7 +137,7 @@ public class PagoService {
                 itemsPreference.add(PreferenceItemRequest.builder()
                         .title("Producto #" + ci.getProductoId())
                         .quantity(ci.getCantidad())
-                        .unitPrice(new BigDecimal(ci.getPrecioUnitario()))
+                        .unitPrice(BigDecimal.valueOf(ci.getPrecioUnitario()))
                         .build());
             }
 
@@ -153,10 +159,14 @@ public class PagoService {
             pago.setTransaccionId(preference.getInitPoint());
             return pagoRepository.save(pago);
 
+        } catch (MPApiException apiEx) {
+            // ¡AQUÍ ESTÁ LA TRAMPA PARA ATRAPAR EL ERROR REAL DE MP!
+            String jsonError = apiEx.getApiResponse() != null ? apiEx.getApiResponse().getContent() : "Sin detalles de MP";
+            System.err.println("💥 ERROR EXACTO DE MERCADO PAGO: " + jsonError);
+            throw new RuntimeException(jsonError);
         } catch (Exception e) {
-            System.err.println("💥 ERROR FATAL DE MERCADO PAGO: " + e.getMessage());
-            e.printStackTrace();
-            throw new RuntimeException("Error de Mercado Pago: " + e.getMessage());
+            System.err.println("💥 ERROR INTERNO: " + e.getMessage());
+            throw new RuntimeException("Error interno: " + e.getMessage());
         }
     }
 
