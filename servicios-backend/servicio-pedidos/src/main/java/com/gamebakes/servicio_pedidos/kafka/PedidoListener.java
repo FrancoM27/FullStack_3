@@ -21,12 +21,10 @@ public class PedidoListener {
             System.out.println("Recibiendo notificación de pago para crear pedido...");
             System.out.println("Mensaje recibido: " + message);
 
-            // Parsear manualmente el String para extraer información
             Long clienteId = null;
             String clienteNombre = null;
             String itemsStr = null;
 
-            // Extraer clienteId
             if (message.contains("clienteId=")) {
                 String[] parts = message.split("clienteId=");
                 if (parts.length > 1) {
@@ -35,7 +33,6 @@ public class PedidoListener {
                 }
             }
 
-            // Extraer clienteNombre
             if (message.contains("clienteNombre=")) {
                 String[] parts = message.split("clienteNombre=");
                 if (parts.length > 1) {
@@ -44,7 +41,6 @@ public class PedidoListener {
                 }
             }
 
-            // Extraer items (desde items= hasta el cierre del corchete)
             if (message.contains("items=")) {
                 int itemsStart = message.indexOf("items=") + 6;
                 int itemsEnd = message.indexOf("]", itemsStart);
@@ -58,10 +54,8 @@ public class PedidoListener {
                 return;
             }
 
-            // Si hay items en el carrito, procesarlos
             if (itemsStr != null && !itemsStr.isEmpty() && !itemsStr.equals("[]")) {
                 System.out.println("Procesando items del carrito: " + itemsStr);
-                // Usar regex para extraer productoId y cantidad de cada CarritoItem
                 java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("productoId=(\\d+).*?cantidad=(\\d+)");
                 java.util.regex.Matcher matcher = pattern.matcher(itemsStr);
 
@@ -77,7 +71,6 @@ public class PedidoListener {
                     }
                 }
             } else {
-                // Si no hay items (pago directo), crear un pedido genérico
                 Pedido nuevoPedido = new Pedido();
                 nuevoPedido.setClienteId(clienteId);
                 nuevoPedido.setClienteNombre(clienteNombre != null ? clienteNombre : "Cliente");
@@ -99,9 +92,8 @@ public class PedidoListener {
     @SuppressWarnings("unchecked")
     private void crearPedido(Long clienteId, String clienteNombre, Long productoId, Integer cantidad) {
         try {
-            // Obtener información del producto desde el servicio de productos
             RestTemplate restTemplate = new RestTemplate();
-            String productoUrl = "http://18.205.233.123:8085/api/productos/" + productoId;
+            String productoUrl = "http://servicio-productos:8085/api/productos/" + productoId;
             Map<String, Object> productoData = restTemplate.getForObject(productoUrl, Map.class);
 
             if (productoData != null) {

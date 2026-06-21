@@ -17,12 +17,11 @@ const Carrito = ({ usuarioId, onCambiarSeccion }) => {
 
     const obtenerCarrito = async () => {
         try {
-            const response = await fetch(`http://18.205.233.123:9000/bff/carrito/completo/${usuarioId}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/bff/carrito/completo/${usuarioId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
             setItems(data.items);
-            // Los detalles de productos ya vienen incluidos en la respuesta BFF
         } catch (err) {
             console.error(err);
         } finally {
@@ -30,14 +29,9 @@ const Carrito = ({ usuarioId, onCambiarSeccion }) => {
         }
     };
 
-    const cargarNombresYFotos = async (itemsCarrito) => {
-        // Esta función ya no es necesaria ya que el BFF agrega los detalles
-        // Se mantiene por compatibilidad pero no hace nada
-    };
-
     const handleProcederAlPago = async () => {
         try {
-            const response = await fetch(`http://18.205.233.123:9000/api/pagos/iniciar-desde-carrito/${usuarioId}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/pagos/iniciar-desde-carrito/${usuarioId}`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -63,7 +57,7 @@ const Carrito = ({ usuarioId, onCambiarSeccion }) => {
             const auth = getAuthData();
             const nombreReal = auth && auth.nombre ? auth.nombre : 'Cliente';
 
-            const response = await fetch(`http://18.205.233.123:9000/api/pagos/confirmar/${idPagoGenerado}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/pagos/confirmar/${idPagoGenerado}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,

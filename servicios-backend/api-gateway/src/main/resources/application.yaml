@@ -11,7 +11,10 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowed-origins: "http://18.205.233.123:5173"
+            allowed-origins:
+              - "http://localhost:5173"
+              - "${FRONTEND_URL:http://18.211.231.0:5173}"
+              - "${FRONTEND_URL_ALT:http://18.211.231.0}"
             allowed-methods:
               - GET
               - POST
@@ -22,74 +25,39 @@ spring:
             allowed-headers: "*"
             allow-credentials: true
       routes:
-        # BFF - Rutas de Backend for Frontend (Agregación de datos)
-        - id: bff-productos-detalle-completo
-          uri: lb://api-gateway
-          predicates:
-            - Path=/bff/productos/**
-          filters:
-            - AuthenticationFilter
-
-        - id: bff-carrito-completo
-          uri: lb://api-gateway
-          predicates:
-            - Path=/bff/carrito/**
-          filters:
-            - AuthenticationFilter
-
-        - id: bff-dashboard
-          uri: lb://api-gateway
-          predicates:
-            - Path=/bff/dashboard/**
-          filters:
-            - AuthenticationFilter
-
-        #USUARIOS - RUTA PROTEGIDA (Perfil)
         - id: servicio-usuarios-perfil
           uri: http://servicio-usuarios:8080
           predicates:
             - Path=/api/usuarios/perfil/**
           filters:
             - AuthenticationFilter
-
-        #USUARIOS - RUTAS PÚBLICAS (Login, Registro, etc)
         - id: servicio-usuarios-publico
           uri: http://servicio-usuarios:8080
           predicates:
             - Path=/api/usuarios/**
-
-        # RESEÑAS
         - id: servicio-resenas
           uri: http://servicio-resenas:8081
           predicates:
             - Path=/api/resenas/**
           filters:
             - AuthenticationFilter
-
-        # PEDIDOS
         - id: servicio-pedidos
           uri: http://servicio-pedidos:8082
           predicates:
             - Path=/api/pedidos/**
           filters:
             - AuthenticationFilter
-
-        # PERFIL - CREACIÓN PÚBLICA (para registro)
         - id: servicio-perfil-crear
           uri: http://servicio-perfil:8084
           predicates:
             - Path=/api/perfil
             - Method=POST
-
-        # PERFIL - RUTAS PROTEGIDAS (obtener, actualizar)
         - id: servicio-perfil
           uri: http://servicio-perfil:8084
           predicates:
             - Path=/api/perfil/**
           filters:
             - AuthenticationFilter
-
-        # PRODUCTOS - PRIVADO (Crear, Editar, Borrar)
         - id: servicio-productos-privado
           uri: http://servicio-productos:8085
           predicates:
@@ -97,15 +65,11 @@ spring:
             - Method=POST, PUT, PATCH, DELETE
           filters:
             - AuthenticationFilter
-
-        # PRODUCTOS - PÚBLICO (Ver el catálogo)
         - id: servicio-productos-publico
           uri: http://servicio-productos:8085
           predicates:
             - Path=/api/productos/**
             - Method=GET, OPTIONS
-
-        # PAGOS
         - id: servicio-pagos
           uri: http://servicio-pagos:8086
           predicates:

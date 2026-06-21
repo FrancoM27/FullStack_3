@@ -40,7 +40,7 @@ export default function Registro({ alVolverAlLogin }) {
         };
 
         try {
-            const response = await fetch('http://localhost:9000/api/usuarios/registrar', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/usuarios/registrar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(datosParaEnviar)
@@ -49,11 +49,10 @@ export default function Registro({ alVolverAlLogin }) {
             const data = await response.json().catch(() => null);
 
             if (response.ok) {
-                // Crear perfil automáticamente después del registro exitoso
                 try {
                     const token = data.token || null;
                     const usuarioId = data.id || data.usuarioId || null;
-                    
+
                     if (usuarioId) {
                         const perfilData = {
                             usuarioId: usuarioId,
@@ -65,7 +64,7 @@ export default function Registro({ alVolverAlLogin }) {
                             direccion: ''
                         };
 
-                        const perfilResponse = await fetch('http://localhost:9000/api/perfil', {
+                        const perfilResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/perfil`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -80,7 +79,6 @@ export default function Registro({ alVolverAlLogin }) {
                     }
                 } catch (perfilError) {
                     console.warn('Error al crear perfil automáticamente:', perfilError);
-                    // No bloquear el registro si falla la creación del perfil
                 }
 
                 alert(`🚀 ¡Cuenta creada! Ya puedes iniciar sesión.`);

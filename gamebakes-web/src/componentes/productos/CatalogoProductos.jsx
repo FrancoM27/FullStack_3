@@ -17,7 +17,7 @@ const CatalogoProductos = ({onVerDetalle}) => {
     const traerProductosActivos = async () => {
         try {
             setCargando(true);
-            const response = await fetch('http://localhost:9000/api/productos');
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/productos`);
             if (!response.ok) throw new Error('Error al traer productos');
             const data = await response.json();
             setProductos(data);
@@ -83,7 +83,7 @@ const CatalogoProductos = ({onVerDetalle}) => {
                             cursor: 'pointer',
                             position: 'relative'
                         }}
-                        onClick={() => onVerDetalle(producto.id)} // AHORA LA TARJETA USA LA MISMA FUNCIÓN QUE EL BOTÓN
+                        onClick={() => onVerDetalle(producto.id)}
                         onMouseEnter={(e) => {
                             e.currentTarget.style.borderColor = '#00d4ff';
                             e.currentTarget.style.boxShadow = '0 0 15px rgba(0,212,255,0.3)';
@@ -124,7 +124,7 @@ const CatalogoProductos = ({onVerDetalle}) => {
 
                             <button
                                 onClick={(e) => {
-                                    e.stopPropagation(); // Evita el doble click
+                                    e.stopPropagation();
                                     onVerDetalle(producto.id);
                                 }}
                                 style={{

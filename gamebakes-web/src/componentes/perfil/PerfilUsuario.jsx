@@ -17,7 +17,6 @@ export default function PerfilUsuario({ usuarioId, rol }) {
 
     const colorTema = rol === 'vendedor' ? '#9b59b6' : '#00d4ff';
 
-    // Cargar perfil al montar el componente
     useEffect(() => {
         cargarPerfil();
     }, [usuarioId]);
@@ -29,8 +28,8 @@ export default function PerfilUsuario({ usuarioId, rol }) {
         try {
             const token = sessionStorage.getItem('token');
             const authData = JSON.parse(atob(token.split('.')[1]));
-            
-            const response = await fetch(`http://localhost:9000/api/perfil/usuario/${usuarioId}`, {
+
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/perfil/usuario/${usuarioId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -50,7 +49,6 @@ export default function PerfilUsuario({ usuarioId, rol }) {
                     direccion: data.direccion || ''
                 });
             } else if (response.status === 404) {
-                // Perfil no existe, crear uno automáticamente
                 await crearPerfilAutomatico();
             } else {
                 setMensaje({ tipo: 'error', texto: 'Error al cargar el perfil' });
@@ -67,7 +65,7 @@ export default function PerfilUsuario({ usuarioId, rol }) {
         try {
             const token = sessionStorage.getItem('token');
             const authData = JSON.parse(atob(token.split('.')[1]));
-            
+
             const nuevoPerfil = {
                 usuarioId: usuarioId,
                 nombreCompleto: authData.nombre || '',
@@ -75,7 +73,7 @@ export default function PerfilUsuario({ usuarioId, rol }) {
                 direccion: ''
             };
 
-            const response = await fetch('http://localhost:9000/api/perfil', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/perfil`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -97,7 +95,6 @@ export default function PerfilUsuario({ usuarioId, rol }) {
                 });
                 setMensaje({ tipo: 'exito', texto: 'Perfil creado automáticamente' });
             } else if (response.status === 409) {
-                // Perfil ya existe, intentar cargarlo
                 await cargarPerfil();
             } else {
                 setMensaje({ tipo: 'error', texto: 'Error al crear perfil automáticamente' });
@@ -113,7 +110,6 @@ export default function PerfilUsuario({ usuarioId, rol }) {
         setGuardando(true);
         setMensaje({ tipo: '', texto: '' });
 
-        // Validaciones
         if (form.nombreCompleto.trim().length < 2) {
             setMensaje({ tipo: 'error', texto: 'El nombre completo debe tener al menos 2 caracteres' });
             setGuardando(false);
@@ -129,14 +125,14 @@ export default function PerfilUsuario({ usuarioId, rol }) {
         try {
             const token = sessionStorage.getItem('token');
             const authData = JSON.parse(atob(token.split('.')[1]));
-            
+
             const perfilActualizado = {
                 nombreCompleto: form.nombreCompleto,
                 telefono: form.telefono,
                 direccion: form.direccion
             };
 
-            const response = await fetch(`http://localhost:9000/api/perfil/usuario/${usuarioId}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/perfil/usuario/${usuarioId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -172,7 +168,6 @@ export default function PerfilUsuario({ usuarioId, rol }) {
 
     const handleCancelar = () => {
         setModoEdicion(false);
-        // Restaurar valores originales
         if (perfil) {
             setForm({
                 username: perfil.username || '',

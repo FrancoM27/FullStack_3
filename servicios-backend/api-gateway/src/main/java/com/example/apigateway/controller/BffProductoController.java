@@ -3,6 +3,7 @@ package com.example.apigateway.controller;
 import com.example.apigateway.client.PedidoClient;
 import com.example.apigateway.client.ProductoClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -15,6 +16,8 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/bff/productos")
+// AQUÍ ESTÁ LA MAGIA: Le damos permiso directo a tu IP elástica del frontend
+@CrossOrigin(origins = {"http://localhost:5173", "http://18.211.231.0", "http://18.211.231.0:5173"}, allowCredentials = "true")
 public class BffProductoController {
 
     @Autowired
@@ -28,30 +31,29 @@ public class BffProductoController {
             @PathVariable Long id,
             @RequestHeader(value = "X-User-Id", required = false) Long userId,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
-        
+
         return productoClient.obtenerProducto(id)
                 .flatMap(producto -> {
                     Map<String, Object> response = new HashMap<>();
                     response.put("producto", producto);
-                    
-                    // Si hay usuario autenticado, verificar si ha comprado el producto
+
                     if (userId != null && authHeader != null) {
                         return pedidoClient.obtenerMisPedidos()
                                 .collectList()
                                 .map(pedidos -> {
                                     boolean haComprado = false;
                                     boolean entregado = false;
-                                    
+
                                     for (Map<String, Object> pedido : pedidos) {
-                                        if (pedido.get("productoId") != null && 
-                                            pedido.get("productoId").equals(id) && 
-                                            "ENTREGADO".equals(pedido.get("estado"))) {
+                                        if (pedido.get("productoId") != null &&
+                                                pedido.get("productoId").equals(id) &&
+                                                "ENTREGADO".equals(pedido.get("estado"))) {
                                             haComprado = true;
                                             entregado = true;
                                             break;
                                         }
                                     }
-                                    
+
                                     response.put("haComprado", haComprado);
                                     response.put("entregado", entregado);
                                     return response;

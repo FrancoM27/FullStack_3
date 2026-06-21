@@ -8,11 +8,10 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-
 @FeignClient(
-    name = "servicio-pedidos",
-    url = "http://18.205.233.123:8082/api/pedidos",
-    configuration = FeignLoggerConfig.class
+        name = "servicio-pedidos",
+        url = "http://servicio-pedidos:8082/api/pedidos",
+        configuration = FeignLoggerConfig.class
 )
 public interface PedidoClient {
 

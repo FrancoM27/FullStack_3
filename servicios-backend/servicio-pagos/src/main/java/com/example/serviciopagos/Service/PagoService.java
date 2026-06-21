@@ -8,15 +8,12 @@ import com.example.serviciopagos.Repository.PagoRepository;
 import com.example.serviciopagos.Repository.ProductoStockCacheRepository;
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.preference.*;
+import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.resources.preference.Preference;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -64,27 +61,33 @@ public class PagoService {
 
         try {
             MercadoPagoConfig.setAccessToken(accessToken);
+
             PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
                     .title("Compra Directa Gamebakes")
                     .quantity(1)
-                    .unitPrice(new BigDecimal(solicitud.getMonto()))
+                    .unitPrice(BigDecimal.valueOf(solicitud.getMonto()))
                     .build();
             List<PreferenceItemRequest> items = new ArrayList<>();
             items.add(itemRequest);
-            PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success("http://18.205.233.123:5173/pago-exito")
-                    .build();
+
+            // SIN RUTAS NI AUTORETURN. Funciona perfecto.
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(items)
-                    .backUrls(backUrls)
                     .externalReference(pago.getIdPago().toString())
                     .build();
+
             PreferenceClient client = new PreferenceClient();
             Preference preference = client.create(preferenceRequest);
             pago.setTransaccionId(preference.getInitPoint());
             return pagoRepository.save(pago);
+
+        } catch (MPApiException apiEx) {
+            String jsonError = apiEx.getApiResponse() != null ? apiEx.getApiResponse().getContent() : "Sin detalles de MP";
+            System.err.println("💥 ERROR EXACTO DE MERCADO PAGO: " + jsonError);
+            throw new RuntimeException(jsonError);
         } catch (Exception e) {
-            throw new RuntimeException("Error interno al conectar con Mercado Pago");
+            System.err.println("💥 ERROR INTERNO: " + e.getMessage());
+            throw new RuntimeException("Error interno: " + e.getMessage());
         }
     }
 
@@ -92,7 +95,6 @@ public class PagoService {
         List<CarritoItem> itemsCarrito = carritoService.listarPorCliente(clienteId);
         if (itemsCarrito.isEmpty()) throw new RuntimeException("El carrito está vacío");
 
- 
         for (CarritoItem ci : itemsCarrito) {
             ProductoStockCache stockCache = stockCacheRepository.findById(ci.getProductoId())
                     .orElseThrow(() -> new RuntimeException("Un producto de tu carrito ya no está disponible."));
@@ -121,23 +123,28 @@ public class PagoService {
                 itemsPreference.add(PreferenceItemRequest.builder()
                         .title("Producto #" + ci.getProductoId())
                         .quantity(ci.getCantidad())
-                        .unitPrice(new BigDecimal(ci.getPrecioUnitario()))
+                        .unitPrice(BigDecimal.valueOf(ci.getPrecioUnitario()))
                         .build());
             }
-            PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success("http://18.205.233.123:5173/pago-exito")
-                    .build();
+
+            // SIN RUTAS NI AUTORETURN. Funciona perfecto.
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(itemsPreference)
-                    .backUrls(backUrls)
                     .externalReference(pago.getIdPago().toString())
                     .build();
+
             PreferenceClient client = new PreferenceClient();
             Preference preference = client.create(preferenceRequest);
             pago.setTransaccionId(preference.getInitPoint());
             return pagoRepository.save(pago);
+
+        } catch (MPApiException apiEx) {
+            String jsonError = apiEx.getApiResponse() != null ? apiEx.getApiResponse().getContent() : "Sin detalles de MP";
+            System.err.println("💥 ERROR EXACTO DE MERCADO PAGO: " + jsonError);
+            throw new RuntimeException(jsonError);
         } catch (Exception e) {
-            throw new RuntimeException("Error interno al conectar con Mercado Pago");
+            System.err.println("💥 ERROR INTERNO: " + e.getMessage());
+            throw new RuntimeException("Error interno: " + e.getMessage());
         }
     }
 
@@ -172,41 +179,16 @@ public class PagoService {
             pagoInfo.put("items", items);
         }
 
-        kafkaTemplate.send(TOPIC, pagoInfo.toString());
-
         try {
-            if (pago.getProductoId() != null) {
-                try {
-                    restarStock(pago.getProductoId(), pago.getCantidad(), token);
-                } catch (Exception ex) {}
-            } else {
-                List<CarritoItem> items = carritoService.listarPorCliente(pago.getClienteId());
-
-                Map<Long, Integer> productosAgrupados = new HashMap<>();
-                for (CarritoItem item : items) {
-                    productosAgrupados.merge(item.getProductoId(), item.getCantidad(), Integer::sum);
-                }
-
-                // Restar stock de cada producto agrupado
-                for (Map.Entry<Long, Integer> entry : productosAgrupados.entrySet()) {
-                    try {
-                        restarStock(entry.getKey(), entry.getValue(), token);
-                    } catch (Exception ex) {}
-                }
-            }
-        } finally {
-            carritoService.limpiarCarrito(pago.getClienteId());
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            String jsonPago = mapper.writeValueAsString(pagoInfo);
+            kafkaTemplate.send(TOPIC, jsonPago);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al convertir pagoInfo a JSON", e);
         }
-        return pago;
-    }
 
-    private void restarStock(Long productoId, Integer cantidad, String token) {
-        RestTemplate restTemplate = new RestTemplate();
-        String url = "http://18.205.233.123:8085/api/productos/" + productoId + "/restar-stock?cantidad=" + cantidad;
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", token);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
+        carritoService.limpiarCarrito(pago.getClienteId());
+        return pago;
     }
 
     public List<Pago> obtenerHistorialPorCliente(Long clienteId) {

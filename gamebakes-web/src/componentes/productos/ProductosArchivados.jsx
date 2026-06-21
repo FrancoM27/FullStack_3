@@ -16,7 +16,7 @@ export default function ProductosArchivados({ vendedorId, alRestaurarExitoso }) 
     const obtenerArchivados = async () => {
         setCargando(true);
         try {
-            const response = await fetch(`http://localhost:9000/api/productos/vendedor/${vendedorId}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/productos/vendedor/${vendedorId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
@@ -34,7 +34,7 @@ export default function ProductosArchivados({ vendedorId, alRestaurarExitoso }) 
 
     const handleRestaurar = async (productoId) => {
         try {
-            const response = await fetch(`http://localhost:9000/api/productos/${productoId}/estado?activo=true`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/productos/${productoId}/estado?activo=true`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`,
