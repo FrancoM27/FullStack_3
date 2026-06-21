@@ -171,7 +171,13 @@ public class PagoService {
             pagoInfo.put("items", items);
         }
 
-        kafkaTemplate.send(TOPIC, pagoInfo.toString());
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            String jsonPago = mapper.writeValueAsString(pagoInfo);
+            kafkaTemplate.send(TOPIC, jsonPago);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al convertir pagoInfo a JSON", e);
+        }
 
         carritoService.limpiarCarrito(pago.getClienteId());
         return pago;
