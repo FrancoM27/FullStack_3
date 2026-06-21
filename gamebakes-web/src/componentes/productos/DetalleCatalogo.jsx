@@ -7,19 +7,14 @@ const DetalleCatalogo = ({productoId, alVolver, rol, usuarioId}) => {
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState('');
     const [cantidad, setCantidad] = useState(1);
-
-    // Nuevo estado para la animación de carga hacia MP
-    const [redireccionando, setRedireccionando] = useState(false);
-
+    const [esperandoPago, setEsperandoPago] = useState(false);
+    const [idPagoGenerado, setIdPagoGenerado] = useState(null);
     const [haComprado, setHaComprado] = useState(false);
 
     const token = sessionStorage.getItem('token');
 
     useEffect(() => {
         obtenerDetalle();
-        if (token && rol === 'cliente') {
-            verificarCompra();
-        }
     }, [productoId]);
 
     const obtenerDetalle = async () => {
@@ -40,10 +35,6 @@ const DetalleCatalogo = ({productoId, alVolver, rol, usuarioId}) => {
         } finally {
             setCargando(false);
         }
-    };
-
-    const verificarCompra = async () => {
-        // Lógica futura
     };
 
     const handleAgregarCarrito = async () => {
@@ -80,14 +71,12 @@ const DetalleCatalogo = ({productoId, alVolver, rol, usuarioId}) => {
     const handleComprarAhora = async () => {
         if (!token) return alert("Por favor, inicia sesión para comprar.");
 
-        setRedireccionando(true); // Iniciamos la animación
-
         const solicitud = {
             productoId: producto.id,
             cantidad: cantidad,
             monto: producto.precio * cantidad,
             descripcion: `Compra ${producto.nombre}`,
-            clienteId: usuarioId
+            clienteId: usuarioId // ¡El fix del clienteId está aquí!
         };
 
         try {
@@ -103,17 +92,39 @@ const DetalleCatalogo = ({productoId, alVolver, rol, usuarioId}) => {
             if (response.ok) {
                 const data = await response.json();
                 if (data.transaccionId) {
-                    // Magia: Redirigimos en la misma pestaña para que funcione el Back URL
-                    window.location.href = data.transaccionId;
+                    setIdPagoGenerado(data.idPago);
+                    setEsperandoPago(true);
+                    // Volvemos a abrir en pestaña nueva, la vieja confiable
+                    window.open(data.transaccionId, '_blank');
                 }
             } else {
                 const errorText = await response.text();
                 alert(`⚠️ No se pudo iniciar el pago: ${errorText}`);
-                setRedireccionando(false);
             }
         } catch (err) {
             alert("❌ Error de conexión al intentar procesar el pago.");
-            setRedireccionando(false);
+        }
+    };
+
+    const confirmarPagoManual = async () => {
+        try {
+            const auth = getAuthData();
+            const nombreReal = auth && auth.nombre ? auth.nombre : 'Cliente';
+
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/pagos/confirmar/${idPagoGenerado}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'X-User-Id': String(usuarioId),
+                    'X-User-Name': nombreReal
+                }
+            });
+            if (response.ok) {
+                alert("✅ Pago confirmado. El stock ha sido descontado correctamente.");
+                window.location.reload();
+            }
+        } catch (err) {
+            alert("❌ Error al confirmar el pago.");
         }
     };
 
@@ -148,30 +159,7 @@ const DetalleCatalogo = ({productoId, alVolver, rol, usuarioId}) => {
                         <p style={{color: '#ccc', marginBottom: '20px'}}>{producto.descripcion}</p>
                         <h3 style={{color: 'white', fontSize: '1.8rem', margin: '0 0 20px 0'}}>${producto.precio?.toLocaleString()}</h3>
 
-                        {/* Cambio Visual: Si estamos redirigiendo, mostramos loading. Si no, los botones normales */}
-                        {redireccionando ? (
-                            <div style={{
-                                padding: '20px',
-                                border: '1px solid #00d4ff',
-                                borderRadius: '10px',
-                                textAlign: 'center',
-                                backgroundColor: 'rgba(0, 212, 255, 0.1)'
-                            }}>
-                                <div style={{
-                                    border: '4px solid rgba(0, 212, 255, 0.3)',
-                                    borderTop: '4px solid #00d4ff',
-                                    borderRadius: '50%',
-                                    width: '30px',
-                                    height: '30px',
-                                    animation: 'spin 1s linear infinite',
-                                    margin: '0 auto 15px'
-                                }} />
-                                <p style={{color: '#00d4ff', fontWeight: 'bold'}}>🔒 Conectando con Mercado Pago...</p>
-                                <p style={{color: '#888', fontSize: '0.8rem', marginTop: '5px'}}>Serás redirigido en un momento</p>
-                                {/* Keyframes inyectados rápidamente para el spinner */}
-                                <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-                            </div>
-                        ) : (
+                        {!esperandoPago ? (
                             <>
                                 <div style={{display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '20px'}}>
                                     <label style={{color: '#888'}}>Cantidad:</label>
@@ -217,6 +205,33 @@ const DetalleCatalogo = ({productoId, alVolver, rol, usuarioId}) => {
                                     </button>
                                 </div>
                             </>
+                        ) : (
+                            <div style={{
+                                padding: '20px',
+                                border: '1px dashed #00d4ff',
+                                borderRadius: '10px',
+                                textAlign: 'center',
+                                backgroundColor: 'rgba(0, 212, 255, 0.05)'
+                            }}>
+                                <p style={{color: '#00d4ff', fontWeight: 'bold', marginBottom: '10px'}}>
+                                    🔒 Tu pago seguro se abrió en otra pestaña
+                                </p>
+                                <p style={{color: '#aaa', fontSize: '0.9rem', marginBottom: '15px'}}>
+                                    Completa la transacción en Mercado Pago y luego haz clic aquí para confirmar.
+                                </p>
+                                <button onClick={confirmarPagoManual} style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    backgroundColor: '#00d4ff',
+                                    color: 'black',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer'
+                                }}>
+                                    ✅ YA PAGUÉ, DESCONTAR STOCK
+                                </button>
+                            </div>
                         )}
                     </div>
                 </div>

@@ -70,20 +70,9 @@ public class PagoService {
             List<PreferenceItemRequest> items = new ArrayList<>();
             items.add(itemRequest);
 
-            // Hack de HTTPS usando tus TinyURLs creados
-            String urlExitoHTTPS = "https://tinyurl.com/mtsyd5j5";
-            String urlFalloHTTPS = "https://tinyurl.com/3p5akzc5";
-
-            PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success(urlExitoHTTPS)
-                    .failure(urlFalloHTTPS)
-                    .pending(urlFalloHTTPS)
-                    .build();
-
+            // SIN RUTAS NI AUTORETURN. Funciona perfecto.
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(items)
-                    .backUrls(backUrls)
-                    .autoReturn("approved")
                     .externalReference(pago.getIdPago().toString())
                     .build();
 
@@ -138,20 +127,9 @@ public class PagoService {
                         .build());
             }
 
-            // Hack de HTTPS usando tus TinyURLs creados
-            String urlExitoHTTPS = "https://tinyurl.com/mtsyd5j5";
-            String urlFalloHTTPS = "https://tinyurl.com/3p5akzc5";
-
-            PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success(urlExitoHTTPS)
-                    .failure(urlFalloHTTPS)
-                    .pending(urlFalloHTTPS)
-                    .build();
-
+            // SIN RUTAS NI AUTORETURN. Funciona perfecto.
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(itemsPreference)
-                    .backUrls(backUrls)
-                    .autoReturn("approved")
                     .externalReference(pago.getIdPago().toString())
                     .build();
 
