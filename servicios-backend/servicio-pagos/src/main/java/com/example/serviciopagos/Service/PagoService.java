@@ -77,6 +77,7 @@ public class PagoService {
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(items)
                     .backUrls(backUrls)
+                    .autoReturn("approved")
                     .externalReference(pago.getIdPago().toString())
                     .build();
             PreferenceClient client = new PreferenceClient();
@@ -129,6 +130,7 @@ public class PagoService {
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(itemsPreference)
                     .backUrls(backUrls)
+                    .autoReturn("approved")
                     .externalReference(pago.getIdPago().toString())
                     .build();
             PreferenceClient client = new PreferenceClient();
