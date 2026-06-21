@@ -38,12 +38,12 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Build y Analizar con SonarCloud (Servicio Pagos)
+      - name: Build y Analizar TODO con SonarCloud
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          cd servicios-backend/servicio-pagos
-          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=FrancoM27_FullStack_3
+          cd servicios-backend
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=FrancoM27_FullStack_3 -Dsonar.organization=francom27
 
   compilar-y-subir:
     needs: analisis-sonarqube
@@ -59,15 +59,10 @@ jobs:
           distribution: 'temurin'
           java-version: 17
 
-      - name: Compilar Microservicios
+      - name: Compilar TODOS los Microservicios
         run: |
-          cd servicios-backend/api-gateway && mvn clean package -DskipTests
-          cd ../servicio-usuarios && mvn clean package -DskipTests
-          cd ../servicio-resenas && mvn clean package -DskipTests
-          cd ../servicio-pedidos && mvn clean package -DskipTests
-          cd ../servicio-perfil && mvn clean package -DskipTests
-          cd ../servicio-productos && mvn clean package -DskipTests
-          cd ../servicio-pagos && mvn clean package -DskipTests
+          cd servicios-backend
+          mvn clean package -DskipTests
 
       - name: Iniciar sesión en DockerHub
         uses: docker/login-action@v2

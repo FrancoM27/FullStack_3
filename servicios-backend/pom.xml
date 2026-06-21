@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.gamebakes</groupId>
+    <artifactId>backend-parent</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>api-gateway</module>
+        <module>servicio-usuarios</module>
+        <module>servicio-resenas</module>
+        <module>servicio-pedidos</module>
+        <module>servicio-perfil</module>
+        <module>servicio-productos</module>
+        <module>servicio-pagos</module>
+    </modules>
+</project>
