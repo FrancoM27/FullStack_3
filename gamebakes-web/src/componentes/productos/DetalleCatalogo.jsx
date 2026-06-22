@@ -20,10 +20,16 @@ const DetalleCatalogo = ({productoId, alVolver, rol, usuarioId}) => {
     const obtenerDetalle = async () => {
         try {
             setCargando(true);
-            const headers = {'Authorization': `Bearer ${token}`};
+
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                'X-User-Id': usuarioId ? String(usuarioId) : ''
+            };
+
             const response = await fetch(`${import.meta.env.VITE_API_URL}/bff/productos/${productoId}/detalle-completo`, {
                 headers: token ? headers : {}
             });
+
             if (!response.ok) throw new Error('Error');
             const data = await response.json();
             setProducto(data.producto);

@@ -28,10 +28,19 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
     public GatewayFilter apply(Config config){
         return (exchange, chain) ->{
             ServerHttpRequest request = exchange.getRequest();
+            String path = request.getPath().value();
+
+            System.out.println("=== AUTHENTICATION FILTER ===");
+            System.out.println("Path: " + path);
+
+            // === LISTA VIP (RUTAS PÚBLICAS) ===
+            // Si la ruta es para ver las reseñas de un producto, pasa directo sin pedir token
+            if (path.startsWith("/api/resenas/producto/")) {
+                System.out.println("Ruta pública detectada. Dejando pasar sin token...");
+                return chain.filter(exchange);
+            }
 
             String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-            System.out.println("=== AUTHENTICATION FILTER ===");
-            System.out.println("Path: " + request.getPath());
             System.out.println("AuthHeader: " + authHeader);
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")){
