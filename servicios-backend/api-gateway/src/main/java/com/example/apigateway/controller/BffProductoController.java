@@ -16,7 +16,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/bff/productos")
-// AQUÍ ESTÁ LA MAGIA: Le damos permiso directo a tu IP elástica del frontend
 @CrossOrigin(origins = {"http://localhost:5173", "http://18.211.231.0", "http://18.211.231.0:5173"}, allowCredentials = "true")
 public class BffProductoController {
 
@@ -45,9 +44,13 @@ public class BffProductoController {
                                     boolean entregado = false;
 
                                     for (Map<String, Object> pedido : pedidos) {
-                                        if (pedido.get("productoId") != null &&
-                                                pedido.get("productoId").equals(id) &&
+                                        // MAGIA APLICADA: Forzamos la conversión a Number para poder comparar valores de forma segura
+                                        Number pedProdId = (Number) pedido.get("productoId");
+
+                                        if (pedProdId != null &&
+                                                pedProdId.longValue() == id.longValue() &&
                                                 "ENTREGADO".equals(pedido.get("estado"))) {
+
                                             haComprado = true;
                                             entregado = true;
                                             break;
