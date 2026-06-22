@@ -44,7 +44,7 @@ public class WebClientConfig {
     @Bean
     public WebClient resenasWebClient() {
         return WebClient.builder()
-                .baseUrl("http://app-resenas:8081/api/resenas")
+                .baseUrl("http://servicio-resenas:8081/api/resenas")
                 .build();
     }
 }
