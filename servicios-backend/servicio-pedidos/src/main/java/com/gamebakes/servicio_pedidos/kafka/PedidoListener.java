@@ -25,7 +25,6 @@ public class PedidoListener {
             System.out.println("Recibiendo notificación de pago para crear pedido...");
             System.out.println("Mensaje recibido: " + message);
 
-            // Convertimos el String a un objeto JSON manipulable
             JsonNode jsonNode = objectMapper.readTree(message);
 
             if (!jsonNode.has("clienteId")) {
@@ -33,19 +32,29 @@ public class PedidoListener {
                 return;
             }
 
-            // Extraemos los datos exactos que manda Pagos
             Long clienteId = jsonNode.get("clienteId").asLong();
             String clienteNombre = jsonNode.has("clienteNombre") ? jsonNode.get("clienteNombre").asText() : "Cliente";
 
-            // Verificamos si vienen los datos del producto en el JSON
-            if (jsonNode.has("productoId") && jsonNode.has("cantidad")) {
+            // ¡AQUÍ ESTÁ LA MAGIA NUEVA! Revisamos si viene un arreglo de "items"
+            if (jsonNode.has("items") && jsonNode.get("items").isArray() && !jsonNode.get("items").isEmpty()) {
+                for (JsonNode item : jsonNode.get("items")) {
+                    if (item.has("productoId") && item.has("cantidad")) {
+                        Long productoId = item.get("productoId").asLong();
+                        Integer cantidad = item.get("cantidad").asInt();
+
+                        System.out.println("Procesando item -> productoId: " + productoId + ", cantidad: " + cantidad);
+                        crearPedido(clienteId, clienteNombre, productoId, cantidad);
+                    }
+                }
+            }
+            // Fallback por si mandan un solo producto en la raíz
+            else if (jsonNode.has("productoId") && jsonNode.has("cantidad")) {
                 Long productoId = jsonNode.get("productoId").asLong();
                 Integer cantidad = jsonNode.get("cantidad").asInt();
-
-                System.out.println("Encontrado productoId: " + productoId + ", cantidad: " + cantidad);
                 crearPedido(clienteId, clienteNombre, productoId, cantidad);
-            } else {
-                // Fallback de emergencia por si faltan datos del producto
+            }
+            // Fallback de emergencia total
+            else {
                 Pedido nuevoPedido = new Pedido();
                 nuevoPedido.setClienteId(clienteId);
                 nuevoPedido.setClienteNombre(clienteNombre);

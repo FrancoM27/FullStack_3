@@ -23,101 +23,78 @@ class PedidoListenerTest {
 
     @Test
     void testEscucharPago_WithValidMessageWithItems_ProcessesCorrectly() {
-        String message = "{\"clienteId\":1, \"clienteNombre\":\"Juan\", \"productoId\":100, \"cantidad\":2}";
-
-        // Verifica que se procese el JSON sin lanzar excepciones
+        String message = "{\"clienteId\":1, \"clienteNombre\":\"Juan\", \"items\":[{\"productoId\":100, \"cantidad\":2}]}";
         assertDoesNotThrow(() -> pedidoListener.escucharPago(message));
     }
 
     @Test
     void testEscucharPago_WithValidMessageWithoutItems_ProcessesCorrectly() {
-        String message = "{\"clienteId\":1, \"clienteNombre\":\"Juan\"}";
-
+        String message = "{\"clienteId\":1, \"clienteNombre\":\"Juan\", \"items\":[]}";
         pedidoListener.escucharPago(message);
-
-        // Como no hay items, debería crear un pedido de emergencia
         verify(pedidoRepository, atLeastOnce()).save(any(Pedido.class));
     }
 
     @Test
     void testEscucharPago_WithMessageWithoutItems_ProcessesCorrectly() {
         String message = "{\"clienteId\":1, \"clienteNombre\":\"Juan\"}";
-
         pedidoListener.escucharPago(message);
-
         verify(pedidoRepository, atLeastOnce()).save(any(Pedido.class));
     }
 
     @Test
     void testEscucharPago_WithNullClienteId_DoesNotProcess() {
-        String message = "{\"clienteNombre\":\"Juan\", \"productoId\":100, \"cantidad\":2}";
-
+        String message = "{\"clienteNombre\":\"Juan\", \"items\":[{\"productoId\":100, \"cantidad\":2}]}";
         pedidoListener.escucharPago(message);
-
-        // Al faltar clienteId, debe retornar sin guardar nada
         verify(pedidoRepository, never()).save(any(Pedido.class));
     }
 
     @Test
     void testEscucharPago_WithEmptyMessage_DoesNotProcess() {
         String message = "";
-
         pedidoListener.escucharPago(message);
-
-        // Lanza excepción de JSON parse, capturada por el try-catch, no guarda nada
         verify(pedidoRepository, never()).save(any(Pedido.class));
     }
 
     @Test
     void testEscucharPago_WithInvalidMessage_DoesNotProcess() {
-        String message = "invalid message no json";
-
+        String message = "invalid message";
         pedidoListener.escucharPago(message);
-
         verify(pedidoRepository, never()).save(any(Pedido.class));
     }
 
     @Test
     void testEscucharPago_WithMultipleItems_ProcessesAllItems() {
-        // Adaptado a la lógica actual que espera un JSON plano
-        String message = "{\"clienteId\":1, \"clienteNombre\":\"Juan\", \"productoId\":100, \"cantidad\":2}";
-
+        String message = "{\"clienteId\":1, \"clienteNombre\":\"Juan\", \"items\":[{\"productoId\":100, \"cantidad\":2}, {\"productoId\":200, \"cantidad\":1}]}";
         assertDoesNotThrow(() -> pedidoListener.escucharPago(message));
     }
 
     @Test
     void testEscucharPago_WithMessageWithoutClienteNombre_ProcessesCorrectly() {
-        String message = "{\"clienteId\":1, \"productoId\":100, \"cantidad\":2}";
-
+        String message = "{\"clienteId\":1, \"items\":[{\"productoId\":100, \"cantidad\":2}]}";
         assertDoesNotThrow(() -> pedidoListener.escucharPago(message));
     }
 
     @Test
     void testEscucharPago_WithMalformedItems_ProcessesCorrectly() {
-        // Valor string en vez de número para que falle el parseo de Jackson
-        String message = "{\"clienteId\":1, \"clienteNombre\":\"Juan\", \"productoId\":\"malformed\"}";
-
+        String message = "{\"clienteId\":1, \"clienteNombre\":\"Juan\", \"items\":[{\"productoId\":\"malformed\"}]}";
         assertDoesNotThrow(() -> pedidoListener.escucharPago(message));
     }
 
     @Test
     void testEscucharPago_WithNullMessage_DoesNotThrow() {
         String message = null;
-
         assertDoesNotThrow(() -> pedidoListener.escucharPago(message));
     }
 
     @Test
     void testEscucharPago_WithItemsButNoProductoId_ProcessesCorrectly() {
-        String message = "{\"clienteId\":1, \"clienteNombre\":\"Juan\", \"cantidad\":2}";
-
+        String message = "{\"clienteId\":1, \"clienteNombre\":\"Juan\", \"items\":[{\"cantidad\":2}]}";
         assertDoesNotThrow(() -> pedidoListener.escucharPago(message));
     }
 
     @Test
     void testEscucharPago_WithItemsButNoCantidad_ProcessesCorrectly() {
-        String message = "{\"clienteId\":1, \"clienteNombre\":\"Juan\", \"productoId\":100}";
-
+        String message = "{\"clienteId\":1, \"clienteNombre\":\"Juan\", \"items\":[{\"productoId\":100}]}";
         assertDoesNotThrow(() -> pedidoListener.escucharPago(message));
     }
 }
