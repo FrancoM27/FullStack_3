@@ -9,7 +9,44 @@ on:
       - feature/Franco
 
 jobs:
+  analisis-sonarqube:
+    name: Análisis de Calidad (SonarCloud)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 17
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Build y Analizar TODO con SonarCloud
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          cd servicios-backend
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=FrancoM27_FullStack_3 -Dsonar.organization=francom27
+
   compilar-y-subir:
+    needs: analisis-sonarqube
     runs-on: ubuntu-latest
 
     steps:
@@ -22,15 +59,10 @@ jobs:
           distribution: 'temurin'
           java-version: 17
 
-      - name: Compilar Microservicios
+      - name: Compilar TODOS los Microservicios
         run: |
-          cd servicios-backend/api-gateway && mvn clean package -DskipTests
-          cd ../servicio-usuarios && mvn clean package -DskipTests
-          cd ../servicio-resenas && mvn clean package -DskipTests
-          cd ../servicio-pedidos && mvn clean package -DskipTests
-          cd ../servicio-perfil && mvn clean package -DskipTests
-          cd ../servicio-productos && mvn clean package -DskipTests
-          cd ../servicio-pagos && mvn clean package -DskipTests
+          cd servicios-backend
+          mvn clean package -DskipTests
 
       - name: Iniciar sesión en DockerHub
         uses: docker/login-action@v2
@@ -71,12 +103,6 @@ jobs:
       - name: Build y Push del Frontend
         run: |
           echo "VITE_API_URL=http://52.1.214.93:9000" > ./gamebakes-web/.env
-        
+          
           docker build -t ${{ secrets.DOCKER_USERNAME }}/gb-frontend-react:latest ./gamebakes-web
           docker push ${{ secrets.DOCKER_USERNAME }}/gb-frontend-react:latest
-          
-          
-          
-          
-          
-        

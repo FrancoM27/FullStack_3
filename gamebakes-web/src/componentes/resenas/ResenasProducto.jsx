@@ -206,7 +206,7 @@ export default function ResenasProducto({ rol, usuarioId, productoId, productoNo
             {rol === 'cliente' && !haComprado && productoId && (
                 <div style={{ padding: '15px', backgroundColor: '#1a1a1a', borderRadius: '8px', marginBottom: '20px', border: '1px dashed #444', textAlign: 'center' }}>
                     <p style={{ color: '#888', margin: 0 }}>Solo los guerreros que han adquirido este producto pueden dejar su testimonio.</p>
-                    <p style={{ color: '#666', fontSize: '0.9rem', marginTop: '5px' }}>vacío</p>
+                    <p style={{ color: '#666', fontSize: '0.9rem', marginTop: '5px' }}>Estado: haComprado = {haComprado.toString()}</p>
                 </div>
             )}
 

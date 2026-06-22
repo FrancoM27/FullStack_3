@@ -1,4 +1,4 @@
-package com.gamebakes.servicio_pedidos;
+package com.example.serviciopagos;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -6,13 +6,13 @@ import org.springframework.boot.SpringApplication;
 
 import static org.mockito.Mockito.mockStatic;
 
-class ServicioPedidosApplicationTests {
+class ServicioPagosApplicationTest {
 
     @Test
-    void contextLoads() {
+    void main() {
         try (MockedStatic<SpringApplication> mocked = mockStatic(SpringApplication.class)) {
-            ServicioPedidosApplication.main(new String[]{});
-            mocked.verify(() -> SpringApplication.run(ServicioPedidosApplication.class, new String[]{}));
+            ServicioPagosApplication.main(new String[]{});
+            mocked.verify(() -> SpringApplication.run(ServicioPagosApplication.class, new String[]{}));
         }
     }
 }
