@@ -44,10 +44,10 @@ on:
 #        run: |
 #          cd servicios-backend
 #          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=FrancoM27_FullStack_3 -Dsonar.organization=francom27
-
-  compilar-y-subir:
-    needs: analisis-sonarqube
-    runs-on: ubuntu-latest
+#
+#  compilar-y-subir:
+#    needs: analisis-sonarqube
+#    runs-on: ubuntu-latest
 
     steps:
       - name: Descargar el código
