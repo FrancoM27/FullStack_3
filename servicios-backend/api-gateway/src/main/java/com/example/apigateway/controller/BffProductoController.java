@@ -37,14 +37,13 @@ public class BffProductoController {
                     response.put("producto", producto);
 
                     if (userId != null && authHeader != null) {
-                        return pedidoClient.obtenerMisPedidos()
+                        return pedidoClient.obtenerMisPedidos(userId)
                                 .collectList()
                                 .map(pedidos -> {
                                     boolean haComprado = false;
                                     boolean entregado = false;
 
                                     for (Map<String, Object> pedido : pedidos) {
-                                        // MAGIA APLICADA: Forzamos la conversión a Number para poder comparar valores de forma segura
                                         Number pedProdId = (Number) pedido.get("productoId");
 
                                         if (pedProdId != null &&

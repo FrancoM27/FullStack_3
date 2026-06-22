@@ -18,9 +18,10 @@ public class PedidoClient {
         this.webClient = webClient;
     }
 
-    public Flux<Map<String, Object>> obtenerMisPedidos() {
+    public Flux<Map<String, Object>> obtenerMisPedidos(Long clienteId) {
         return webClient.get()
                 .uri("/mis-pedidos")
+                .header("X-User-Id", String.valueOf(clienteId)) // <--- LA CLAVE
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
     }

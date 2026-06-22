@@ -31,7 +31,7 @@ public class BffDashboardController {
     public Mono<Map<String, Object>> obtenerDashboardCliente(@PathVariable Long clienteId) {
         return Mono.zip(
                 perfilClient.obtenerPerfil(clienteId),
-                pedidoClient.obtenerMisPedidos().collectList(),
+                pedidoClient.obtenerMisPedidos(clienteId).collectList(),
                 resenaClient.obtenerResenasCliente().collectList()
         )
         .map(tuple -> {

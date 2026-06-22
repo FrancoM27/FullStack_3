@@ -6,6 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="0bd1e462-44e4-4aca-9a9b-ab0db1278c0e" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gamebakes-web/src/componentes/resenas/ResenasProducto.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/gamebakes-web/src/componentes/resenas/ResenasProducto.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servicios-backend/api-gateway/src/main/java/com/example/apigateway/client/PedidoClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/api-gateway/src/main/java/com/example/apigateway/client/PedidoClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servicios-backend/api-gateway/src/main/java/com/example/apigateway/controller/BffDashboardController.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/api-gateway/src/main/java/com/example/apigateway/controller/BffDashboardController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/servicios-backend/api-gateway/src/main/java/com/example/apigateway/controller/BffProductoController.java" beforeDir="false" afterPath="$PROJECT_DIR$/servicios-backend/api-gateway/src/main/java/com/example/apigateway/controller/BffProductoController.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -239,7 +242,7 @@
       <workItem from="1781149975296" duration="6959000" />
       <workItem from="1781205743194" duration="4849000" />
       <workItem from="1782059429879" duration="8624000" />
-      <workItem from="1782167548382" duration="1049000" />
+      <workItem from="1782167548382" duration="2082000" />
     </task>
     <servers />
   </component>
