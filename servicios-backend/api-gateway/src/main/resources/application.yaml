@@ -36,7 +36,7 @@ spring:
           predicates:
             - Path=/api/usuarios/**
         - id: servicio-resenas
-          uri: http://servicio-resenas:8081
+          uri: http://app-resenas:8081
           predicates:
             - Path=/api/resenas/**
           filters:
